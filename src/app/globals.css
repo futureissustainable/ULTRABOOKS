@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+/* ============================================
+   ULTRABOOKS - BRUTALIST DESIGN SYSTEM
+   Swiss International / Industrial Aesthetic
+   ============================================ */
+
+/* Font Face Declarations */
+@font-face {
+  font-family: 'PPMondwest';
+  src: url('/fonts/PPMondwest-Regular.woff2') format('woff2'),
+       url('/fonts/PPMondwest-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PPMondwest';
+  src: url('/fonts/PPMondwest-Bold.woff2') format('woff2'),
+       url('/fonts/PPMondwest-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PPNeueBit';
+  src: url('/fonts/PPNeueBit-Bold.woff2') format('woff2'),
+       url('/fonts/PPNeueBit-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Variables - Brutalist Monochrome Palette */
+:root {
+  /* Core Colors */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+
+  /* Accent - Used sparingly for function */
+  --color-accent: #ff0000;
+  --color-accent-muted: #cc0000;
+  --color-success: #00ff00;
+  --color-warning: #ffff00;
+
+  /* Semantic Colors */
+  --bg-primary: var(--color-white);
+  --bg-secondary: var(--color-gray-100);
+  --bg-tertiary: var(--color-gray-200);
+  --bg-inverse: var(--color-black);
+
+  --text-primary: var(--color-black);
+  --text-secondary: var(--color-gray-600);
+  --text-tertiary: var(--color-gray-400);
+  --text-inverse: var(--color-white);
+
+  --border-primary: var(--color-black);
+  --border-secondary: var(--color-gray-300);
+
+  /* Typography Scale */
+  --font-display: 'PPMondwest', 'Courier New', monospace;
+  --font-ui: 'PPNeueBit', 'Courier New', monospace;
+  --font-mono: 'Courier New', 'Courier', monospace;
+  --font-reading: 'Georgia', 'Times New Roman', serif;
+
+  /* Spacing - 4px base grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Border */
+  --border-width: 2px;
+  --border-width-thick: 4px;
+
+  /* Transitions */
+  --transition-fast: 100ms;
+  --transition-normal: 200ms;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg-primary: var(--color-black);
+  --bg-secondary: var(--color-gray-900);
+  --bg-tertiary: var(--color-gray-800);
+  --bg-inverse: var(--color-white);
+
+  --text-primary: var(--color-white);
+  --text-secondary: var(--color-gray-400);
+  --text-tertiary: var(--color-gray-600);
+  --text-inverse: var(--color-black);
+
+  --border-primary: var(--color-white);
+  --border-secondary: var(--color-gray-700);
+}
+
+/* Tailwind Theme Extension */
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
+  --font-mono: var(--font-mono);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 3rem; }
+h2 { font-size: 2.25rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+p {
+  margin: 0;
+  font-family: var(--font-ui);
+}
+
+/* Links - Brutalist Style */
+a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+[data-theme="dark"] ::selection {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+/* Scrollbar - Industrial */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-left: var(--border-width) solid var(--border-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-primary);
+  border: var(--border-width) solid var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Focus States - High Visibility */
+:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Utility Classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-reading {
+  font-family: var(--font-reading);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.bg-accent {
+  background: var(--color-accent);
+}
+
+/* Border Utilities */
+.border-brutal {
+  border: var(--border-width) solid var(--border-primary);
+}
+
+.border-brutal-thick {
+  border: var(--border-width-thick) solid var(--border-primary);
+}
+
+/* Shadow - Brutalist Hard Shadow */
+.shadow-brutal {
+  box-shadow: 4px 4px 0 var(--border-primary);
+}
+
+.shadow-brutal-lg {
+  box-shadow: 8px 8px 0 var(--border-primary);
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hover-lift:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--border-primary);
+}
+
+/* Grid Pattern Background */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--border-secondary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-secondary) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Pixel Text Effect */
+.pixel-text {
+  image-rendering: pixelated;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+}
+
+/* Reader-specific styles */
+.reader-content {
+  font-family: var(--font-reading);
+  line-height: 1.8;
+}
+
+.reader-content p {
+  font-family: inherit;
+  margin-bottom: 1em;
+}
+
+/* Highlight styles for reader */
+.highlight-yellow {
+  background: rgba(255, 255, 0, 0.4);
+}
+
+.highlight-green {
+  background: rgba(0, 255, 0, 0.3);
+}
+
+.highlight-blue {
+  background: rgba(0, 100, 255, 0.3);
+}
+
+.highlight-red {
+  background: rgba(255, 0, 0, 0.3);
+}
+
+/* Loading animation - Industrial */
+@keyframes pulse-brutal {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-brutal {
+  animation: pulse-brutal 1s step-end infinite;
+}
+
+/* Scanline effect */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
