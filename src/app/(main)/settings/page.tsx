@@ -65,23 +65,30 @@ export default function SettingsPage() {
       <Header />
 
       <main className="flex-1">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <h1 className="font-display text-3xl uppercase mb-8">Settings</h1>
+        <div className="container-narrow py-12 md:py-16">
+          <div className="mb-12">
+            <p className="font-body text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)] mb-3">
+              Configuration
+            </p>
+            <h1 className="font-heading">Settings</h1>
+          </div>
 
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* Account Settings */}
             <Card variant="elevated" padding="lg">
-              <h2 className="font-display text-xl uppercase mb-6 flex items-center gap-2">
-                <PixelIcon name="user" size={20} />
-                Account
-              </h2>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 bg-[var(--bg-inverse)] flex items-center justify-center">
+                  <PixelIcon name="user" size={20} className="text-[var(--text-inverse)]" />
+                </div>
+                <h2 className="font-heading text-lg">Account</h2>
+              </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="font-ui text-xs uppercase tracking-wide text-[var(--text-secondary)] block mb-1">
+                  <label className="font-body text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)] block mb-2">
                     Email
                   </label>
-                  <p className="font-mono text-sm">{user?.email}</p>
+                  <p className="font-mono text-[13px]">{user?.email}</p>
                 </div>
 
                 <Input
@@ -92,13 +99,13 @@ export default function SettingsPage() {
                   fullWidth
                 />
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <Button onClick={handleProfileSave} disabled={isSaving}>
                     {isSaving ? 'Saving...' : 'Save Changes'}
                   </Button>
                   {saveSuccess && (
-                    <span className="font-ui text-sm text-[var(--color-success)]">
-                      <PixelIcon name="check" size={16} className="inline mr-1" />
+                    <span className="font-body text-[12px] text-[var(--success)] flex items-center gap-1.5">
+                      <PixelIcon name="check" size={16} />
                       Saved!
                     </span>
                   )}
@@ -108,12 +115,14 @@ export default function SettingsPage() {
 
             {/* Reader Settings */}
             <Card variant="elevated" padding="lg">
-              <h2 className="font-display text-xl uppercase mb-6 flex items-center gap-2">
-                <PixelIcon name="book-open" size={20} />
-                Reader Preferences
-              </h2>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 bg-[var(--bg-inverse)] flex items-center justify-center">
+                  <PixelIcon name="book-open" size={20} className="text-[var(--text-inverse)]" />
+                </div>
+                <h2 className="font-heading text-lg">Reader</h2>
+              </div>
 
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <Select
                   label="Default Theme"
                   options={themeOptions}
@@ -163,64 +172,64 @@ export default function SettingsPage() {
                   fullWidth
                 />
 
-                <p className="font-ui text-xs text-[var(--text-tertiary)]">
-                  These settings are synced across all your devices.
+                <p className="font-body text-[11px] text-[var(--text-tertiary)]">
+                  Settings sync across all your devices.
                 </p>
               </div>
             </Card>
 
             {/* Data & Privacy */}
             <Card variant="elevated" padding="lg">
-              <h2 className="font-display text-xl uppercase mb-6 flex items-center gap-2">
-                <PixelIcon name="sync" size={20} />
-                Data & Sync
-              </h2>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 bg-[var(--bg-inverse)] flex items-center justify-center">
+                  <PixelIcon name="sync" size={20} className="text-[var(--text-inverse)]" />
+                </div>
+                <h2 className="font-heading text-lg">Data & Sync</h2>
+              </div>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-[var(--bg-secondary)]">
+                <div className="flex items-center justify-between p-4 border border-[var(--border-subtle)]">
                   <div>
-                    <p className="font-ui text-sm font-bold">Reading Progress</p>
-                    <p className="font-ui text-xs text-[var(--text-secondary)]">
+                    <p className="font-body text-[13px] font-bold mb-1">Reading Progress</p>
+                    <p className="font-body text-[11px] text-[var(--text-secondary)]">
                       Synced automatically
                     </p>
                   </div>
-                  <PixelIcon name="check" size={20} className="text-[var(--color-success)]" />
+                  <PixelIcon name="check" size={20} className="text-[var(--success)]" />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-[var(--bg-secondary)]">
+                <div className="flex items-center justify-between p-4 border border-[var(--border-subtle)]">
                   <div>
-                    <p className="font-ui text-sm font-bold">Bookmarks</p>
-                    <p className="font-ui text-xs text-[var(--text-secondary)]">
+                    <p className="font-body text-[13px] font-bold mb-1">Bookmarks</p>
+                    <p className="font-body text-[11px] text-[var(--text-secondary)]">
                       Synced automatically
                     </p>
                   </div>
-                  <PixelIcon name="check" size={20} className="text-[var(--color-success)]" />
+                  <PixelIcon name="check" size={20} className="text-[var(--success)]" />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-[var(--bg-secondary)]">
+                <div className="flex items-center justify-between p-4 border border-[var(--border-subtle)]">
                   <div>
-                    <p className="font-ui text-sm font-bold">Highlights</p>
-                    <p className="font-ui text-xs text-[var(--text-secondary)]">
+                    <p className="font-body text-[13px] font-bold mb-1">Highlights</p>
+                    <p className="font-body text-[11px] text-[var(--text-secondary)]">
                       Synced automatically
                     </p>
                   </div>
-                  <PixelIcon name="check" size={20} className="text-[var(--color-success)]" />
+                  <PixelIcon name="check" size={20} className="text-[var(--success)]" />
                 </div>
               </div>
             </Card>
 
             {/* Danger Zone */}
-            <Card variant="outlined" padding="lg" className="border-[var(--color-accent)]">
-              <h2 className="font-display text-xl uppercase mb-6 text-[var(--color-accent)]">
+            <Card variant="outlined" padding="lg" className="border-2 border-[var(--accent)]">
+              <h2 className="font-heading text-lg mb-6 text-[var(--accent)]">
                 Danger Zone
               </h2>
 
-              <div className="space-y-4">
-                <Button variant="danger" onClick={handleSignOut}>
-                  <PixelIcon name="logout" size={16} className="mr-2" />
-                  Sign Out
-                </Button>
-              </div>
+              <Button variant="danger" onClick={handleSignOut}>
+                <PixelIcon name="logout" size={16} className="mr-2" />
+                Sign Out
+              </Button>
             </Card>
           </div>
         </div>

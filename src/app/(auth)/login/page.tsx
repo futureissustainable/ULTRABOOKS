@@ -5,7 +5,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
       <Header />
-      <main className="flex-1 flex items-center justify-center p-4 bg-grid">
+      <main className="flex-1 flex items-center justify-center px-6 py-16 bg-grid-lg">
         <LoginForm />
       </main>
     </div>

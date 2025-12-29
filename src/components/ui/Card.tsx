@@ -5,7 +5,7 @@ import { HTMLAttributes, forwardRef } from 'react';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   hoverable?: boolean;
 }
 
@@ -20,17 +20,23 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           {
             'border-2 border-[var(--border-primary)]': variant === 'default' || variant === 'elevated',
             'shadow-[4px_4px_0_var(--border-primary)]': variant === 'elevated',
-            'border border-[var(--border-secondary)]': variant === 'outlined',
+            'border border-[var(--border-subtle)]': variant === 'outlined',
           },
-          // Padding styles
+          // Padding styles - more generous
           {
             'p-0': padding === 'none',
-            'p-3': padding === 'sm',
-            'p-4': padding === 'md',
-            'p-6': padding === 'lg',
+            'p-4': padding === 'sm',
+            'p-6': padding === 'md',
+            'p-8': padding === 'lg',
+            'p-10': padding === 'xl',
           },
           // Hover effect
-          hoverable && 'transition-all duration-100 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--border-primary)] cursor-pointer',
+          hoverable && [
+            'transition-all duration-100',
+            'cursor-pointer',
+            'hover:translate-x-[-2px] hover:translate-y-[-2px]',
+            'hover:shadow-[6px_6px_0_var(--border-primary)]',
+          ],
           className
         )}
         {...props}

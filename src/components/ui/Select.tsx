@@ -15,11 +15,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
     return (
-      <div className={clsx('flex flex-col gap-1', fullWidth && 'w-full')}>
+      <div className={clsx('flex flex-col gap-2', fullWidth && 'w-full')}>
         {label && (
           <label
             htmlFor={selectId}
-            className="font-ui text-xs uppercase tracking-wide text-[var(--text-secondary)]"
+            className="font-body text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]"
           >
             {label}
           </label>
@@ -28,13 +28,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={clsx(
-            'font-ui px-4 py-2 text-sm appearance-none cursor-pointer',
+            'font-body px-4 py-3 text-[13px] appearance-none cursor-pointer',
             'bg-[var(--bg-primary)] text-[var(--text-primary)]',
             'border-2 border-[var(--border-primary)]',
-            'focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            'bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'currentColor\'%3E%3Cpath d=\'M4 10l8 8 8-8-2-2-6 6-6-6-2 2z\'/%3E%3C/svg%3E")] bg-no-repeat bg-[right_12px_center]',
-            error && 'border-[var(--color-accent)]',
+            'focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2',
+            'disabled:opacity-40 disabled:cursor-not-allowed',
+            'transition-colors duration-100',
+            'bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'currentColor\'%3E%3Cpath d=\'M4 10l8 8 8-8-2-2-6 6-6-6-2 2z\'/%3E%3C/svg%3E")] bg-no-repeat bg-[right_16px_center]',
+            error && 'border-[var(--accent)]',
             fullWidth && 'w-full',
             className
           )}
@@ -47,7 +48,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <span className="font-ui text-xs text-[var(--color-accent)]">
+          <span className="font-body text-[11px] text-[var(--accent)]">
             {error}
           </span>
         )}

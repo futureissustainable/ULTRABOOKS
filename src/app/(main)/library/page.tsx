@@ -8,8 +8,13 @@ export default function LibraryPage() {
       <Header />
 
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <h1 className="font-display text-3xl uppercase mb-8">My Library</h1>
+        <div className="container-page py-12 md:py-16">
+          <div className="mb-12">
+            <p className="font-body text-[11px] uppercase tracking-[0.2em] text-[var(--text-secondary)] mb-3">
+              Your Collection
+            </p>
+            <h1 className="font-heading">My Library</h1>
+          </div>
           <LibraryGrid />
         </div>
       </main>

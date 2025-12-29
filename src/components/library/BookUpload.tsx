@@ -83,7 +83,7 @@ export function BookUpload({ isOpen, onClose }: BookUploadProps) {
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Upload Book" size="md">
-      <div className="space-y-4">
+      <div className="space-y-6">
         {!uploadedFile ? (
           <>
             <div
@@ -92,24 +92,24 @@ export function BookUpload({ isOpen, onClose }: BookUploadProps) {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               className={clsx(
-                'border-2 border-dashed p-8 text-center cursor-pointer transition-colors',
+                'border-2 border-dashed p-12 text-center cursor-pointer transition-all duration-100',
                 isDragging
-                  ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
-                  : 'border-[var(--border-primary)] hover:border-[var(--text-secondary)]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)]/5'
+                  : 'border-[var(--border-primary)] hover:border-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
               )}
             >
               <PixelIcon
                 name="upload"
-                size={48}
+                size={56}
                 className={clsx(
-                  'mx-auto mb-4',
-                  isDragging ? 'text-[var(--color-accent)]' : 'text-[var(--text-tertiary)]'
+                  'mx-auto mb-6',
+                  isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'
                 )}
               />
-              <p className="font-ui text-sm mb-2">
+              <p className="font-body text-[13px] mb-2">
                 Drop your file here or click to browse
               </p>
-              <p className="font-mono text-xs text-[var(--text-tertiary)]">
+              <p className="font-mono text-[11px] text-[var(--text-tertiary)]">
                 EPUB, PDF, MOBI (max 100MB)
               </p>
             </div>
@@ -123,32 +123,32 @@ export function BookUpload({ isOpen, onClose }: BookUploadProps) {
             />
           </>
         ) : (
-          <div className="border-2 border-[var(--border-primary)] p-4">
-            <div className="flex items-center gap-3">
-              <PixelIcon name="book" size={32} />
+          <div className="border-2 border-[var(--border-primary)] p-5">
+            <div className="flex items-center gap-4">
+              <PixelIcon name="book" size={36} />
               <div className="flex-1 min-w-0">
-                <p className="font-ui text-sm font-bold truncate">{uploadedFile.name}</p>
-                <p className="font-mono text-xs text-[var(--text-secondary)]">
+                <p className="font-body text-[13px] font-bold truncate">{uploadedFile.name}</p>
+                <p className="font-mono text-[11px] text-[var(--text-secondary)]">
                   {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB
                 </p>
               </div>
               <button
                 onClick={() => setUploadedFile(null)}
-                className="p-1 hover:text-[var(--color-accent)]"
+                className="p-2 hover:text-[var(--accent)] transition-colors"
               >
-                <PixelIcon name="close" size={16} />
+                <PixelIcon name="close" size={18} />
               </button>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-3 border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/10">
-            <p className="font-ui text-sm text-[var(--color-accent)]">{error}</p>
+          <div className="p-4 border-2 border-[var(--accent)] bg-[var(--accent)]/5">
+            <p className="font-body text-[13px] text-[var(--accent)]">{error}</p>
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <Button variant="secondary" fullWidth onClick={handleCancel}>
             Cancel
           </Button>

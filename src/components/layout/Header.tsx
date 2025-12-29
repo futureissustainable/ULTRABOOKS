@@ -17,36 +17,42 @@ export function Header() {
 
   return (
     <header className="border-b-2 border-[var(--border-primary)] bg-[var(--bg-primary)]">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container-page h-20 flex items-center justify-between">
         {/* Logo */}
-        <Link href={user ? '/library' : '/'} className="flex items-center gap-2 no-underline">
-          <div className="w-8 h-8 bg-[var(--bg-inverse)] flex items-center justify-center">
-            <PixelIcon name="book" size={20} className="text-[var(--text-inverse)]" />
+        <Link
+          href={user ? '/library' : '/'}
+          className="flex items-center gap-3 group"
+        >
+          <div className="w-10 h-10 bg-[var(--bg-inverse)] flex items-center justify-center transition-colors group-hover:bg-[var(--accent)]">
+            <PixelIcon name="book" size={22} className="text-[var(--text-inverse)]" />
           </div>
-          <span className="font-display text-xl uppercase tracking-tight">
+          <span className="font-heading text-xl tracking-tight">
             Ultrabooks
           </span>
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-6">
           {user ? (
             <>
               <Link
                 href="/library"
-                className="font-ui text-sm uppercase tracking-wide hover:text-[var(--color-accent)] no-underline"
+                className="font-body text-[12px] uppercase tracking-[0.1em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 Library
               </Link>
               <Link
                 href="/settings"
-                className="font-ui text-sm uppercase tracking-wide hover:text-[var(--color-accent)] no-underline"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <PixelIcon name="settings" size={20} />
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <PixelIcon name="logout" size={16} />
-              </Button>
+              <button
+                onClick={handleSignOut}
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+              >
+                <PixelIcon name="logout" size={20} />
+              </button>
             </>
           ) : (
             <>
