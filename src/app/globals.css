@@ -535,3 +535,30 @@
     animation: slide-up 0.3s ease-out;
   }
 }
+
+/* ============================================
+   EPUB.JS READER STYLES
+   Ensures proper infinite scroll rendering
+   ============================================ */
+.epub-container {
+  width: 100%;
+  min-height: calc(100vh - 60px);
+}
+
+/* epub.js creates an iframe for content */
+.epub-container iframe {
+  border: none !important;
+  width: 100% !important;
+  min-height: calc(100vh - 60px) !important;
+}
+
+/* epub.js view container */
+.epub-container .epub-view {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+/* Ensure epub content doesn't have unwanted padding */
+.epub-container .epub-container {
+  padding: 0 !important;
+}

@@ -18,7 +18,6 @@ interface PdfReaderProps {
 interface PageState {
   pageNum: number;
   isRendered: boolean;
-  isVisible: boolean;
   height: number;
 }
 
@@ -29,6 +28,7 @@ export function PdfReader({ book }: PdfReaderProps) {
   const pdfDocRef = useRef<unknown>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const renderedPagesRef = useRef<Set<number>>(new Set());
+  const renderVersionRef = useRef(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export function PdfReader({ book }: PdfReaderProps) {
     (b) => b.page === currentPage
   );
 
-  // Handle drag to resize - improved logic
+  // Handle drag to resize
   const handleMouseDown = useCallback((e: React.MouseEvent, side: 'left' | 'right') => {
     e.preventDefault();
     setIsDragging(true);
@@ -105,9 +105,12 @@ export function PdfReader({ book }: PdfReaderProps) {
     };
   }, [isDragging, dragSide]);
 
-  // Render a specific page to its canvas
-  const renderPage = useCallback(async (pageNum: number) => {
-    if (!pdfDocRef.current || !pdfLib || renderedPagesRef.current.has(pageNum)) return;
+  // Render a specific page to its canvas - force re-render with version
+  const renderPage = useCallback(async (pageNum: number, forceRender = false) => {
+    if (!pdfDocRef.current || !pdfLib) return;
+
+    const cacheKey = `${pageNum}-${renderVersionRef.current}`;
+    if (!forceRender && renderedPagesRef.current.has(pageNum)) return;
 
     const canvas = canvasRefs.current.get(pageNum);
     if (!canvas) return;
@@ -119,18 +122,22 @@ export function PdfReader({ book }: PdfReaderProps) {
       const context = canvas.getContext('2d');
       if (!context) return;
 
-      // Calculate scale based on container width
-      const containerWidth = pagesContainerRef.current?.clientWidth || 800;
+      // Calculate scale based on actual container width
+      const containerEl = pagesContainerRef.current;
+      const actualWidth = containerEl ? containerEl.clientWidth : (window.innerWidth * contentWidth / 100);
       const viewport = (page as {getViewport: (opts: {scale: number}) => {width: number; height: number}}).getViewport({ scale: 1 });
-      const calculatedScale = (containerWidth - 40) / viewport.width;
+      const calculatedScale = (actualWidth - 40) / viewport.width;
       const finalScale = calculatedScale * scale;
 
       const scaledViewport = (page as {getViewport: (opts: {scale: number}) => {width: number; height: number}}).getViewport({ scale: finalScale });
 
-      canvas.height = scaledViewport.height;
+      // Set canvas dimensions
       canvas.width = scaledViewport.width;
+      canvas.height = scaledViewport.height;
 
-      // Apply theme colors
+      // Clear and apply theme
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
       if (settings.theme === 'dark') {
         context.filter = 'invert(1) hue-rotate(180deg)';
       } else if (settings.theme === 'sepia') {
@@ -144,7 +151,7 @@ export function PdfReader({ book }: PdfReaderProps) {
         viewport: scaledViewport,
       }).promise;
 
-      // Update page height for proper spacing
+      // Update page state with actual height
       setPages(prev => prev.map(p =>
         p.pageNum === pageNum ? { ...p, isRendered: true, height: scaledViewport.height } : p
       ));
@@ -152,7 +159,7 @@ export function PdfReader({ book }: PdfReaderProps) {
       console.error(`Error rendering page ${pageNum}:`, err);
       renderedPagesRef.current.delete(pageNum);
     }
-  }, [pdfLib, scale, settings.theme]);
+  }, [pdfLib, scale, settings.theme, contentWidth]);
 
   // Initialize PDF reader
   useEffect(() => {
@@ -180,8 +187,7 @@ export function PdfReader({ book }: PdfReaderProps) {
           initialPages.push({
             pageNum: i,
             isRendered: false,
-            isVisible: false,
-            height: 800, // Default height, will be updated after render
+            height: 800,
           });
         }
         setPages(initialPages);
@@ -229,7 +235,7 @@ export function PdfReader({ book }: PdfReaderProps) {
 
   // Set up intersection observer for lazy loading and current page tracking
   useEffect(() => {
-    if (isLoading || !pdfLib) return;
+    if (isLoading || !pdfLib || pages.length === 0) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
@@ -237,19 +243,16 @@ export function PdfReader({ book }: PdfReaderProps) {
           const pageNum = parseInt(entry.target.getAttribute('data-page') || '1', 10);
 
           if (entry.isIntersecting) {
-            // Render the page if it's visible
             renderPage(pageNum);
-
-            // Also pre-render adjacent pages
+            // Pre-render adjacent pages
             if (pageNum > 1) renderPage(pageNum - 1);
             if (pageNum < totalPages) renderPage(pageNum + 1);
           }
         });
 
-        // Find the most visible page to set as current
+        // Find most visible page
         const visibleEntries = entries.filter(e => e.isIntersecting);
         if (visibleEntries.length > 0) {
-          // Sort by intersection ratio to find the most visible page
           const mostVisible = visibleEntries.reduce((prev, curr) =>
             curr.intersectionRatio > prev.intersectionRatio ? curr : prev
           );
@@ -274,22 +277,36 @@ export function PdfReader({ book }: PdfReaderProps) {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [isLoading, pdfLib, totalPages, renderPage, book.id, updateProgress]);
+  }, [isLoading, pdfLib, pages.length, totalPages, renderPage, book.id, updateProgress]);
 
-  // Re-render all visible pages when scale or theme changes
+  // Re-render all pages when scale, theme, or contentWidth changes
   useEffect(() => {
-    if (!pdfDocRef.current || isLoading) return;
+    if (!pdfDocRef.current || isLoading || pages.length === 0) return;
 
-    // Clear rendered pages cache to force re-render
+    // Increment version to force re-render
+    renderVersionRef.current += 1;
+
+    // Clear cache
     renderedPagesRef.current.clear();
 
-    // Re-render currently visible pages
-    pages.forEach((page) => {
-      if (page.isRendered) {
-        renderPage(page.pageNum);
-      }
-    });
-  }, [scale, settings.theme]);
+    // Reset all pages as not rendered
+    setPages(prev => prev.map(p => ({ ...p, isRendered: false })));
+
+    // Re-render visible pages after a short delay for DOM to update
+    const timeout = setTimeout(() => {
+      const visiblePages = document.querySelectorAll('[data-page]');
+      visiblePages.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (isVisible) {
+          const pageNum = parseInt(el.getAttribute('data-page') || '1', 10);
+          renderPage(pageNum, true);
+        }
+      });
+    }, 100);
+
+    return () => clearTimeout(timeout);
+  }, [scale, settings.theme, contentWidth, isLoading, pages.length]);
 
   // Register canvas refs
   const setCanvasRef = useCallback((pageNum: number, canvas: HTMLCanvasElement | null) => {
@@ -380,6 +397,32 @@ export function PdfReader({ book }: PdfReaderProps) {
         isBookmarked={isCurrentPageBookmarked}
       />
 
+      {/* Left drag handle - fixed position outside scroll container */}
+      <div
+        className={clsx(
+          'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-30',
+          'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
+          isDragging && dragSide === 'left' && 'bg-[var(--color-accent)] opacity-40'
+        )}
+        style={{ left: `calc(${(100 - contentWidth) / 2}% - 12px)` }}
+        onMouseDown={(e) => handleMouseDown(e, 'left')}
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
+      </div>
+
+      {/* Right drag handle - fixed position outside scroll container */}
+      <div
+        className={clsx(
+          'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-30',
+          'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
+          isDragging && dragSide === 'right' && 'bg-[var(--color-accent)] opacity-40'
+        )}
+        style={{ right: `calc(${(100 - contentWidth) / 2}% - 12px)` }}
+        onMouseDown={(e) => handleMouseDown(e, 'right')}
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
+      </div>
+
       {/* PDF Container - Infinite Scroll */}
       <div
         ref={containerRef}
@@ -403,25 +446,9 @@ export function PdfReader({ book }: PdfReaderProps) {
         {/* Content wrapper with adjustable width */}
         <div
           ref={pagesContainerRef}
-          className={clsx('mx-auto relative py-4', isLoading && 'invisible')}
+          className={clsx('mx-auto py-4', isLoading && 'invisible')}
           style={{ width: `${contentWidth}%` }}
         >
-          {/* Left drag handle */}
-          <div
-            className={clsx(
-              'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-20',
-              'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
-              isDragging && dragSide === 'left' && 'bg-[var(--color-accent)] opacity-40'
-            )}
-            style={{
-              left: `${(100 - contentWidth) / 2}%`,
-              transform: 'translateX(-100%)'
-            }}
-            onMouseDown={(e) => handleMouseDown(e, 'left')}
-          >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
-          </div>
-
           {/* All PDF Pages - Infinite Scroll */}
           <div className="flex flex-col items-center gap-4">
             {pages.map((page) => (
@@ -446,22 +473,6 @@ export function PdfReader({ book }: PdfReaderProps) {
                 )}
               </div>
             ))}
-          </div>
-
-          {/* Right drag handle */}
-          <div
-            className={clsx(
-              'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-20',
-              'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
-              isDragging && dragSide === 'right' && 'bg-[var(--color-accent)] opacity-40'
-            )}
-            style={{
-              right: `${(100 - contentWidth) / 2}%`,
-              transform: 'translateX(100%)'
-            }}
-            onMouseDown={(e) => handleMouseDown(e, 'right')}
-          >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
           </div>
         </div>
 
