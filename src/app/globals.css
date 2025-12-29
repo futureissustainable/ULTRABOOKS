@@ -538,27 +538,38 @@
 
 /* ============================================
    EPUB.JS READER STYLES
-   Ensures proper infinite scroll rendering
+   Continuous/Infinite scroll mode
    ============================================ */
 .epub-container {
   width: 100%;
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
 }
 
-/* epub.js creates an iframe for content */
-.epub-container iframe {
-  border: none !important;
-  width: 100% !important;
-  min-height: calc(100vh - 60px) !important;
-}
-
-/* epub.js view container */
-.epub-container .epub-view {
-  width: 100% !important;
+/* epub.js view wrapper - must allow natural height */
+.epub-container > div {
+  height: auto !important;
+  min-height: auto !important;
   overflow: visible !important;
 }
 
-/* Ensure epub content doesn't have unwanted padding */
-.epub-container .epub-container {
-  padding: 0 !important;
+/* epub.js creates an iframe for content - key for continuous scroll */
+.epub-container iframe {
+  border: none !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  display: block !important;
+}
+
+/* epub.js view container - allow content to flow */
+.epub-container .epub-view {
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Continuous manager specific - each section flows naturally */
+.epub-container .epub-view > div {
+  height: auto !important;
+  min-height: auto !important;
 }
