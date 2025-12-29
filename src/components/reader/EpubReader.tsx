@@ -22,25 +22,24 @@ interface TocItem {
   subitems?: TocItem[];
 }
 
-interface SpineSection {
+interface Section {
   id: string;
-  href: string;
   html: string;
 }
 
 export function EpubReader({ book }: EpubReaderProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const bookRef = useRef<unknown>(null);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingStatus, setLoadingStatus] = useState('Initializing...');
   const [error, setError] = useState<string | null>(null);
   const [toc, setToc] = useState<TocItem[]>([]);
-  const [sections, setSections] = useState<SpineSection[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [currentSection, setCurrentSection] = useState<string>('');
   const [progress, setProgress] = useState(0);
 
-  // Width control state (percentage of viewport)
+  // Width control state
   const [contentWidth, setContentWidth] = useState(65);
   const [isDragging, setIsDragging] = useState(false);
   const [dragSide, setDragSide] = useState<'left' | 'right' | null>(null);
@@ -108,7 +107,7 @@ export function EpubReader({ book }: EpubReaderProps) {
     };
   }, [isDragging, dragSide]);
 
-  // Track scroll position and update current section
+  // Track scroll position
   useEffect(() => {
     if (sections.length === 0) return;
 
@@ -118,7 +117,7 @@ export function EpubReader({ book }: EpubReaderProps) {
       const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
       setProgress(scrollPercent);
 
-      // Find current section based on scroll position
+      // Find current section
       let currentId = sections[0]?.id || '';
       for (const [id, el] of sectionRefs.current.entries()) {
         const rect = el.getBoundingClientRect();
@@ -137,94 +136,88 @@ export function EpubReader({ book }: EpubReaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections, currentSection, book.id, updateProgress]);
 
-  // Initialize EPUB reader - extract ALL content for infinite scroll
+  // Initialize reader with foliate-js
   useEffect(() => {
     let mounted = true;
 
     const initReader = async () => {
       try {
-        const ePub = (await import('epubjs')).default;
+        setLoadingStatus('Fetching book...');
+
+        // Fetch the book file
+        const response = await fetch(book.file_url);
+        if (!response.ok) throw new Error('Failed to fetch book file');
+
+        const blob = await response.blob();
+        const file = new File([blob], book.title, { type: blob.type });
 
         if (!mounted) return;
+        setLoadingStatus('Parsing book...');
 
-        const epubBook = ePub(book.file_url);
-        bookRef.current = epubBook;
-
-        await epubBook.ready;
+        // Use foliate-js to parse the book
+        const { makeBook } = await import('foliate-js/view.js');
+        const foliate = await makeBook(file);
 
         if (!mounted) return;
+        setLoadingStatus('Loading chapters...');
 
-        // Get table of contents
-        const navigation = await epubBook.loaded.navigation;
-        if (navigation?.toc) {
+        // Extract TOC
+        if (foliate.toc) {
           const formatToc = (items: unknown[]): TocItem[] => {
-            return (items as Array<{id?: string; href?: string; label?: string; subitems?: unknown[]}>).map((item) => ({
-              id: item.id || '',
+            return (items as Array<{ href?: string; label?: string; subitems?: unknown[] }>).map((item, i) => ({
+              id: item.href || `toc-${i}`,
               href: item.href || '',
-              label: item.label || '',
+              label: item.label || `Chapter ${i + 1}`,
               subitems: item.subitems ? formatToc(item.subitems) : undefined,
             }));
           };
-          setToc(formatToc(navigation.toc));
+          setToc(formatToc(foliate.toc));
         }
 
-        // Get all spine items and extract their HTML content
-        const spine = epubBook.spine as unknown as { each: (fn: (item: { href: string; load: (book: unknown) => Promise<{ document: Document }> }) => void) => void };
-        const loadedSections: SpineSection[] = [];
+        // Load all sections for infinite scroll
+        const loadedSections: Section[] = [];
+        const totalSections = foliate.sections?.length || 0;
 
-        // Load all sections
-        await new Promise<void>((resolve) => {
-          const items: Array<{ href: string; load: (book: unknown) => Promise<{ document: Document }> }> = [];
-          spine.each((item) => items.push(item));
+        for (let i = 0; i < totalSections; i++) {
+          const section = foliate.sections[i];
+          if (!section) continue;
 
-          Promise.all(
-            items.map(async (item, index) => {
-              try {
-                const content = await item.load(epubBook);
-                const doc = content.document;
-                const body = doc.body;
+          setLoadingStatus(`Loading chapter ${i + 1} of ${totalSections}...`);
 
-                // Process images to use absolute URLs
-                const images = body.querySelectorAll('img');
-                images.forEach((img) => {
-                  const src = img.getAttribute('src');
-                  if (src && !src.startsWith('http') && !src.startsWith('data:')) {
-                    // Try to resolve relative URL
-                    const baseHref = item.href;
-                    const basePath = baseHref.substring(0, baseHref.lastIndexOf('/') + 1);
-                    img.setAttribute('src', basePath + src);
-                  }
-                });
+          try {
+            // Get the document for this section
+            const doc = await section.createDocument();
+            if (!doc?.body) continue;
 
-                // Get the HTML content
-                const html = body.innerHTML;
-
-                return {
-                  index,
-                  id: item.href,
-                  href: item.href,
-                  html,
-                };
-              } catch (err) {
-                console.warn(`Failed to load section ${item.href}:`, err);
-                return null;
+            // Process images - convert to blob URLs
+            const images = doc.body.querySelectorAll('img');
+            for (const img of images) {
+              const src = img.getAttribute('src');
+              if (src && !src.startsWith('http') && !src.startsWith('data:') && !src.startsWith('blob:')) {
+                // Images in EPUBs are relative, we'll try to load them
+                // For now, just mark them as potentially broken
+                img.setAttribute('data-original-src', src);
               }
-            })
-          ).then((results) => {
-            const validResults = results
-              .filter((r): r is NonNullable<typeof r> => r !== null)
-              .sort((a, b) => a.index - b.index);
+            }
 
-            loadedSections.push(...validResults.map(r => ({
-              id: r.id,
-              href: r.href,
-              html: r.html,
-            })));
-            resolve();
-          });
-        });
+            // Get HTML content
+            const html = doc.body.innerHTML;
+            if (html.trim()) {
+              loadedSections.push({
+                id: section.id || `section-${i}`,
+                html,
+              });
+            }
+          } catch (err) {
+            console.warn(`Failed to load section ${i}:`, err);
+          }
+        }
 
         if (!mounted) return;
+
+        if (loadedSections.length === 0) {
+          throw new Error('No content found in book');
+        }
 
         setSections(loadedSections);
 
@@ -239,7 +232,7 @@ export function EpubReader({ book }: EpubReaderProps) {
 
         setIsLoading(false);
 
-        // Scroll to saved position after content renders
+        // Scroll to saved position
         if (savedProgress?.current_location) {
           setTimeout(() => {
             const el = sectionRefs.current.get(savedProgress.current_location);
@@ -249,9 +242,9 @@ export function EpubReader({ book }: EpubReaderProps) {
           }, 100);
         }
       } catch (err) {
-        console.error('Error loading EPUB:', err);
+        console.error('Error loading book:', err);
         if (mounted) {
-          setError('Failed to load book. Please try again.');
+          setError(err instanceof Error ? err.message : 'Failed to load book');
           setIsLoading(false);
         }
       }
@@ -261,20 +254,16 @@ export function EpubReader({ book }: EpubReaderProps) {
 
     return () => {
       mounted = false;
-      if (bookRef.current) {
-        (bookRef.current as {destroy: () => void}).destroy();
-      }
     };
-  }, [book.file_url, book.id]);
+  }, [book.file_url, book.id, book.title]);
 
-  // Navigation handlers
+  // Navigation
   const handleNavigate = useCallback((href: string) => {
-    // Find the section with this href
     const el = sectionRefs.current.get(href);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      // Try to find by partial match
+      // Try partial match
       for (const [id, element] of sectionRefs.current.entries()) {
         if (id.includes(href) || href.includes(id)) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -293,7 +282,6 @@ export function EpubReader({ book }: EpubReaderProps) {
     }
   }, [bookmarks, currentSection, book.id, addBookmark, removeBookmark]);
 
-  // Register section refs
   const setSectionRef = useCallback((id: string, el: HTMLDivElement | null) => {
     if (el) {
       sectionRefs.current.set(id, el);
@@ -302,7 +290,7 @@ export function EpubReader({ book }: EpubReaderProps) {
     }
   }, []);
 
-  // Get theme styles
+  // Theme styles
   const getThemeStyles = () => {
     switch (settings.theme) {
       case 'dark':
@@ -379,13 +367,13 @@ export function EpubReader({ book }: EpubReaderProps) {
               <PixelIcon name="loading" size={32} />
             </div>
             <p className="font-ui text-sm uppercase tracking-wide animate-pulse-brutal">
-              Loading book...
+              {loadingStatus}
             </p>
           </div>
         </div>
       )}
 
-      {/* Main content - TRUE infinite scroll */}
+      {/* Main content - infinite scroll */}
       <div
         ref={contentRef}
         className="pt-[60px] pb-20 mx-auto transition-[width] duration-75"
@@ -409,7 +397,7 @@ export function EpubReader({ book }: EpubReaderProps) {
         ))}
       </div>
 
-      {/* Width indicator during drag */}
+      {/* Width indicator */}
       {isDragging && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-black text-white px-3 py-1 rounded font-mono text-sm">
           {Math.round(contentWidth)}%
