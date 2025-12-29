@@ -61,19 +61,22 @@ export function PdfReader({ book }: PdfReaderProps) {
     (b) => b.page === currentPage
   );
 
-  // Handle drag to resize
+  // Handle drag to resize - using pointer events for better tracking
   const handleMouseDown = useCallback((e: React.MouseEvent, side: 'left' | 'right') => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setDragSide(side);
     dragStartX.current = e.clientX;
     dragStartWidth.current = contentWidth;
   }, [contentWidth]);
 
+  // Global mouse move/up handlers for dragging
   useEffect(() => {
     if (!isDragging || !dragSide) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
       const deltaX = e.clientX - dragStartX.current;
       const deltaPercent = (deltaX / window.innerWidth) * 100;
 
@@ -84,6 +87,7 @@ export function PdfReader({ book }: PdfReaderProps) {
         newWidth = dragStartWidth.current - deltaPercent * 2;
       }
 
+      // Clamp between 30% and 95%
       setContentWidth(Math.min(Math.max(30, newWidth), 95));
     };
 
@@ -92,24 +96,24 @@ export function PdfReader({ book }: PdfReaderProps) {
       setDragSide(null);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Use capture phase for better event handling
+    document.addEventListener('mousemove', handleMouseMove, { capture: true });
+    document.addEventListener('mouseup', handleMouseUp, { capture: true });
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove, { capture: true });
+      document.removeEventListener('mouseup', handleMouseUp, { capture: true });
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
   }, [isDragging, dragSide]);
 
-  // Render a specific page to its canvas - force re-render with version
+  // Render a specific page to its canvas
   const renderPage = useCallback(async (pageNum: number, forceRender = false) => {
     if (!pdfDocRef.current || !pdfLib) return;
 
-    const cacheKey = `${pageNum}-${renderVersionRef.current}`;
     if (!forceRender && renderedPagesRef.current.has(pageNum)) return;
 
     const canvas = canvasRefs.current.get(pageNum);
@@ -292,8 +296,8 @@ export function PdfReader({ book }: PdfReaderProps) {
     // Reset all pages as not rendered
     setPages(prev => prev.map(p => ({ ...p, isRendered: false })));
 
-    // Re-render visible pages after a short delay for DOM to update
-    const timeout = setTimeout(() => {
+    // Re-render visible pages immediately
+    requestAnimationFrame(() => {
       const visiblePages = document.querySelectorAll('[data-page]');
       visiblePages.forEach((el) => {
         const rect = el.getBoundingClientRect();
@@ -303,9 +307,7 @@ export function PdfReader({ book }: PdfReaderProps) {
           renderPage(pageNum, true);
         }
       });
-    }, 100);
-
-    return () => clearTimeout(timeout);
+    });
   }, [scale, settings.theme, contentWidth, isLoading, pages.length]);
 
   // Register canvas refs
@@ -397,30 +399,38 @@ export function PdfReader({ book }: PdfReaderProps) {
         isBookmarked={isCurrentPageBookmarked}
       />
 
-      {/* Left drag handle - fixed position outside scroll container */}
+      {/* Left drag handle */}
       <div
         className={clsx(
-          'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-30',
-          'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
-          isDragging && dragSide === 'left' && 'bg-[var(--color-accent)] opacity-40'
+          'fixed top-[60px] bottom-0 w-4 cursor-ew-resize z-40 group',
+          isDragging && dragSide === 'left' && 'bg-[var(--color-accent)]/30'
         )}
-        style={{ left: `calc(${(100 - contentWidth) / 2}% - 12px)` }}
+        style={{ left: `calc(${(100 - contentWidth) / 2}% - 8px)` }}
         onMouseDown={(e) => handleMouseDown(e, 'left')}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
+        {/* Visual indicator */}
+        <div className={clsx(
+          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-20 rounded-full transition-all',
+          'bg-gray-400 group-hover:bg-[var(--color-accent)] group-hover:w-2 group-hover:h-24',
+          isDragging && dragSide === 'left' && 'bg-[var(--color-accent)] w-2 h-24'
+        )} />
       </div>
 
-      {/* Right drag handle - fixed position outside scroll container */}
+      {/* Right drag handle */}
       <div
         className={clsx(
-          'fixed top-[60px] bottom-0 w-3 cursor-ew-resize z-30',
-          'hover:bg-[var(--color-accent)] hover:opacity-40 transition-opacity',
-          isDragging && dragSide === 'right' && 'bg-[var(--color-accent)] opacity-40'
+          'fixed top-[60px] bottom-0 w-4 cursor-ew-resize z-40 group',
+          isDragging && dragSide === 'right' && 'bg-[var(--color-accent)]/30'
         )}
-        style={{ right: `calc(${(100 - contentWidth) / 2}% - 12px)` }}
+        style={{ right: `calc(${(100 - contentWidth) / 2}% - 8px)` }}
         onMouseDown={(e) => handleMouseDown(e, 'right')}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-16 bg-[var(--border-primary)] rounded opacity-50" />
+        {/* Visual indicator */}
+        <div className={clsx(
+          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-20 rounded-full transition-all',
+          'bg-gray-400 group-hover:bg-[var(--color-accent)] group-hover:w-2 group-hover:h-24',
+          isDragging && dragSide === 'right' && 'bg-[var(--color-accent)] w-2 h-24'
+        )} />
       </div>
 
       {/* PDF Container - Infinite Scroll */}
@@ -446,7 +456,7 @@ export function PdfReader({ book }: PdfReaderProps) {
         {/* Content wrapper with adjustable width */}
         <div
           ref={pagesContainerRef}
-          className={clsx('mx-auto py-4', isLoading && 'invisible')}
+          className={clsx('mx-auto py-4 transition-[width] duration-75', isLoading && 'invisible')}
           style={{ width: `${contentWidth}%` }}
         >
           {/* All PDF Pages - Infinite Scroll */}
@@ -513,6 +523,13 @@ export function PdfReader({ book }: PdfReaderProps) {
           <span className="font-mono text-sm">/ {totalPages}</span>
         </div>
       </div>
+
+      {/* Width indicator during drag */}
+      {isDragging && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white px-3 py-1 rounded font-mono text-sm">
+          {Math.round(contentWidth)}%
+        </div>
+      )}
 
       {/* Modals */}
       <ReaderSettings />
