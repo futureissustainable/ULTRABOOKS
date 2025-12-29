@@ -40,15 +40,20 @@ export function SignupForm() {
 
   if (success) {
     return (
-      <Card variant="elevated" padding="lg" className="w-full max-w-md">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-[var(--color-success)] flex items-center justify-center">
-            <PixelIcon name="check" size={24} className="text-black" />
+      <Card variant="elevated" padding="xl" className="w-full max-w-md">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-12 h-12 bg-[var(--success)] flex items-center justify-center">
+            <PixelIcon name="check" size={26} className="text-black" />
           </div>
-          <h1 className="font-display text-2xl">Check Your Email</h1>
+          <div>
+            <p className="font-body text-[11px] uppercase tracking-[0.15em] text-[var(--text-secondary)] mb-1">
+              Almost done
+            </p>
+            <h1 className="font-heading text-2xl">Check Email</h1>
+          </div>
         </div>
 
-        <p className="font-ui text-sm text-[var(--text-secondary)] mb-6">
+        <p className="font-body text-[13px] text-[var(--text-secondary)] mb-8 leading-relaxed">
           We&apos;ve sent you a confirmation email. Please check your inbox and click the
           link to verify your account.
         </p>
@@ -61,15 +66,20 @@ export function SignupForm() {
   }
 
   return (
-    <Card variant="elevated" padding="lg" className="w-full max-w-md">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-[var(--bg-inverse)] flex items-center justify-center">
-          <PixelIcon name="plus" size={24} className="text-[var(--text-inverse)]" />
+    <Card variant="elevated" padding="xl" className="w-full max-w-md">
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-12 h-12 bg-[var(--bg-inverse)] flex items-center justify-center">
+          <PixelIcon name="plus" size={26} className="text-[var(--text-inverse)]" />
         </div>
-        <h1 className="font-display text-2xl">Sign Up</h1>
+        <div>
+          <p className="font-body text-[11px] uppercase tracking-[0.15em] text-[var(--text-secondary)] mb-1">
+            Get started
+          </p>
+          <h1 className="font-heading text-2xl">Sign Up</h1>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Input
           label="Email"
           type="email"
@@ -101,8 +111,8 @@ export function SignupForm() {
         />
 
         {error && (
-          <div className="p-3 border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/10">
-            <p className="font-ui text-sm text-[var(--color-accent)]">{error}</p>
+          <div className="p-4 border-2 border-[var(--accent)] bg-[var(--accent)]/5">
+            <p className="font-body text-[13px] text-[var(--accent)]">{error}</p>
           </div>
         )}
 
@@ -111,10 +121,10 @@ export function SignupForm() {
         </Button>
       </form>
 
-      <div className="mt-6 pt-6 border-t-2 border-[var(--border-secondary)]">
-        <p className="font-ui text-sm text-center text-[var(--text-secondary)]">
+      <div className="mt-8 pt-8 border-t-2 border-[var(--border-subtle)]">
+        <p className="font-body text-[13px] text-center text-[var(--text-secondary)]">
           Already have an account?{' '}
-          <Link href="/login" className="text-[var(--text-primary)]">
+          <Link href="/login" className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors">
             Sign in
           </Link>
         </p>

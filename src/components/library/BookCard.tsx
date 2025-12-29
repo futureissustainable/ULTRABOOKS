@@ -46,32 +46,32 @@ export function BookCard({ book }: BookCardProps) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="flex flex-col items-center gap-2 p-4">
+              <div className="flex flex-col items-center gap-3 p-6">
                 <PixelIcon
                   name={fileTypeIcons[book.file_type] || 'book'}
-                  size={48}
+                  size={56}
                   className="text-[var(--text-tertiary)]"
                 />
-                <span className="font-mono text-xs text-[var(--text-tertiary)] uppercase">
+                <span className="font-mono text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
                   {book.file_type}
                 </span>
               </div>
             )}
 
             {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="font-ui text-sm uppercase text-white">Read</span>
+            <div className="absolute inset-0 bg-black/85 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <span className="font-body text-[12px] uppercase tracking-[0.15em] text-white">Read</span>
             </div>
           </div>
         </Link>
 
         {/* Book Info */}
-        <div className="p-3 border-t-2 border-[var(--border-primary)]">
-          <h3 className="font-ui text-sm font-bold truncate mb-1" title={book.title}>
+        <div className="p-4 border-t-2 border-[var(--border-primary)]">
+          <h3 className="font-body text-[12px] font-bold truncate mb-1" title={book.title}>
             {book.title}
           </h3>
           {book.author && (
-            <p className="font-ui text-xs text-[var(--text-secondary)] truncate mb-2">
+            <p className="font-body text-[11px] text-[var(--text-secondary)] truncate mb-3">
               {book.author}
             </p>
           )}
@@ -81,7 +81,7 @@ export function BookCard({ book }: BookCardProps) {
             </span>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-1 hover:text-[var(--color-accent)] transition-colors"
+              className="p-1.5 hover:text-[var(--accent)] transition-colors -mr-1"
               aria-label="Delete book"
             >
               <PixelIcon name="trash" size={14} />
@@ -97,12 +97,12 @@ export function BookCard({ book }: BookCardProps) {
         title="Delete Book"
         size="sm"
       >
-        <div className="space-y-4">
-          <p className="font-ui text-sm">
+        <div className="space-y-6">
+          <p className="font-body text-[13px] leading-relaxed">
             Are you sure you want to delete &ldquo;{book.title}&rdquo;? This will also remove all
             bookmarks, highlights, and reading progress.
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <Button
               variant="secondary"
               fullWidth
