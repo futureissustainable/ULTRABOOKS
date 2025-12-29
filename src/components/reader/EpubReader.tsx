@@ -86,12 +86,12 @@ export function EpubReader({ book }: EpubReaderProps) {
           setToc(formatToc(navigation.toc));
         }
 
-        // Create rendition
+        // Create rendition with scrolled (infinite scroll) mode
         const rendition = epubBook.renderTo(containerRef.current, {
           width: '100%',
           height: '100%',
           spread: 'none',
-          flow: 'paginated',
+          flow: 'scrolled-doc',
         });
         renditionRef.current = rendition;
 
@@ -226,6 +226,15 @@ export function EpubReader({ book }: EpubReaderProps) {
         'font-size': 'inherit !important',
         'line-height': 'inherit !important',
       },
+      img: {
+        'max-width': '100% !important',
+        'height': 'auto !important',
+        'object-fit': 'contain !important',
+      },
+      svg: {
+        'max-width': '100% !important',
+        'height': 'auto !important',
+      },
     });
   }, [settings]);
 
@@ -290,7 +299,7 @@ export function EpubReader({ book }: EpubReaderProps) {
       {/* Reader Container */}
       <div
         className={clsx(
-          'fixed inset-0 pt-[60px]',
+          'fixed inset-0 pt-[60px] overflow-auto',
           isLoading && 'flex items-center justify-center'
         )}
         style={{ background: getThemeBackground() }}
