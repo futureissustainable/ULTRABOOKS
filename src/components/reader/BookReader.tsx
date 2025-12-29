@@ -3,7 +3,6 @@
 import type { Book } from '@/lib/supabase/types';
 import { EpubReader } from './EpubReader';
 import { PdfReader } from './PdfReader';
-import { MobiReader } from './MobiReader';
 
 interface BookReaderProps {
   book: Book;
@@ -12,11 +11,11 @@ interface BookReaderProps {
 export function BookReader({ book }: BookReaderProps) {
   switch (book.file_type) {
     case 'epub':
+    case 'mobi':
+      // foliate-js handles both EPUB and MOBI natively
       return <EpubReader book={book} />;
     case 'pdf':
       return <PdfReader book={book} />;
-    case 'mobi':
-      return <MobiReader book={book} />;
     default:
       return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
