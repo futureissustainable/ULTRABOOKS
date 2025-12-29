@@ -35,6 +35,10 @@ export function EpubReader({ book }: EpubReaderProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
+  // Width control state (percentage of viewport)
+  const [contentWidth, setContentWidth] = useState(65);
+  const [isDragging, setIsDragging] = useState(false);
+
   const {
     settings,
     loadProgress,
@@ -51,6 +55,32 @@ export function EpubReader({ book }: EpubReaderProps) {
   const isCurrentLocationBookmarked = bookmarks.some(
     (b) => b.location === currentHref
   );
+
+  // Handle drag to resize
+  const handleMouseDown = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = (e.clientX / window.innerWidth) * 100 * 2;
+      setContentWidth(Math.min(Math.max(30, newWidth), 95));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   // Initialize EPUB reader
   useEffect(() => {
@@ -91,7 +121,8 @@ export function EpubReader({ book }: EpubReaderProps) {
           width: '100%',
           height: '100%',
           spread: 'none',
-          flow: 'scrolled-doc',
+          flow: 'scrolled',
+          manager: 'continuous',
         });
         renditionRef.current = rendition;
 
@@ -138,34 +169,7 @@ export function EpubReader({ book }: EpubReaderProps) {
           }
         });
 
-        // Handle click events for navigation
-        rendition.on('click', (e: MouseEvent) => {
-          const { clientX } = e;
-          const { innerWidth } = window;
-
-          // Click on left third = prev, right third = next
-          if (clientX < innerWidth / 3) {
-            rendition.prev();
-          } else if (clientX > (innerWidth * 2) / 3) {
-            rendition.next();
-          }
-        });
-
-        // Keyboard navigation
-        const handleKeyDown = (e: KeyboardEvent) => {
-          if (e.key === 'ArrowRight' || e.key === ' ') {
-            rendition.next();
-          } else if (e.key === 'ArrowLeft') {
-            rendition.prev();
-          }
-        };
-        document.addEventListener('keydown', handleKeyDown);
-
         setIsLoading(false);
-
-        return () => {
-          document.removeEventListener('keydown', handleKeyDown);
-        };
       } catch (err) {
         console.error('Error loading EPUB:', err);
         if (mounted) {
@@ -198,8 +202,8 @@ export function EpubReader({ book }: EpubReaderProps) {
       },
       dark: {
         body: {
-          background: '#1a1a1a',
-          color: '#e0e0e0',
+          background: '#000000',
+          color: '#ffffff',
         },
       },
       sepia: {
@@ -265,7 +269,7 @@ export function EpubReader({ book }: EpubReaderProps) {
   const getThemeBackground = () => {
     switch (settings.theme) {
       case 'dark':
-        return '#1a1a1a';
+        return '#000000';
       case 'sepia':
         return '#f4ecd8';
       default:
@@ -298,26 +302,58 @@ export function EpubReader({ book }: EpubReaderProps) {
 
       {/* Reader Container */}
       <div
-        className={clsx(
-          'fixed inset-0 pt-[60px] overflow-auto',
-          isLoading && 'flex items-center justify-center'
-        )}
+        className="fixed inset-0 pt-[60px] overflow-y-auto overflow-x-hidden"
         style={{ background: getThemeBackground() }}
       >
         {isLoading && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin">
-              <PixelIcon name="loading" size={32} />
+          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: getThemeBackground() }}>
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin">
+                <PixelIcon name="loading" size={32} />
+              </div>
+              <p className="font-ui text-sm uppercase tracking-wide animate-pulse-brutal">
+                Loading book...
+              </p>
             </div>
-            <p className="font-ui text-sm uppercase tracking-wide animate-pulse-brutal">
-              Loading book...
-            </p>
           </div>
         )}
+
+        {/* Content wrapper with adjustable width */}
         <div
-          ref={containerRef}
-          className={clsx('w-full h-full', isLoading && 'invisible')}
-        />
+          className="mx-auto relative"
+          style={{ width: `${contentWidth}%` }}
+        >
+          {/* Left drag handle */}
+          <div
+            className={clsx(
+              'absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize z-20',
+              'hover:bg-[var(--color-accent)] hover:opacity-30 transition-opacity',
+              isDragging && 'bg-[var(--color-accent)] opacity-30'
+            )}
+            style={{ transform: 'translateX(-100%)' }}
+            onMouseDown={handleMouseDown}
+          />
+
+          {/* EPUB content */}
+          <div
+            ref={containerRef}
+            className={clsx(
+              'min-h-screen',
+              isLoading && 'invisible'
+            )}
+          />
+
+          {/* Right drag handle */}
+          <div
+            className={clsx(
+              'absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize z-20',
+              'hover:bg-[var(--color-accent)] hover:opacity-30 transition-opacity',
+              isDragging && 'bg-[var(--color-accent)] opacity-30'
+            )}
+            style={{ transform: 'translateX(100%)' }}
+            onMouseDown={handleMouseDown}
+          />
+        </div>
       </div>
 
       {/* Modals */}

@@ -199,7 +199,7 @@ export function PdfReader({ book }: PdfReaderProps) {
   const getThemeBackground = () => {
     switch (settings.theme) {
       case 'dark':
-        return '#1a1a1a';
+        return '#000000';
       case 'sepia':
         return '#f4ecd8';
       default:
