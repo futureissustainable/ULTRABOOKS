@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { clsx } from 'clsx';
 import type { Book } from '@/lib/supabase/types';
-import { useReaderStore } from '@/lib/stores/reader-store';
+import { useReaderStore, useReaderSettingsHydrated } from '@/lib/stores/reader-store';
 import { useStreakStore } from '@/lib/stores/streak-store';
 import { ReaderToolbar } from './ReaderToolbar';
 import { ReaderSettings } from './ReaderSettings';
@@ -77,6 +77,9 @@ export function EpubReader({ book }: EpubReaderProps) {
 
   const { startReadingSession, endReadingSession, checkAndUpdateStreak } = useStreakStore();
 
+  // Wait for hydration to ensure persisted settings are loaded
+  const hasHydrated = useReaderSettingsHydrated();
+
   const isCurrentLocationBookmarked = bookmarks.some(
     (b) => b.location === currentSection
   );
@@ -116,7 +119,10 @@ export function EpubReader({ book }: EpubReaderProps) {
   }, [settings.theme]);
 
   // Inject dynamic CSS to force settings on EPUB content
+  // Only apply after hydration to use persisted settings
   useEffect(() => {
+    if (!hasHydrated) return;
+
     const colors = getThemeColors();
 
     // Create or update the style element
@@ -221,12 +227,14 @@ export function EpubReader({ book }: EpubReaderProps) {
         styleRef.current = null;
       }
     };
-  }, [settings, getThemeColors]);
+  }, [settings, getThemeColors, hasHydrated]);
 
-  // Load settings on mount
+  // Load settings on mount (after hydration to not overwrite local settings)
   useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
+    if (hasHydrated) {
+      loadSettings();
+    }
+  }, [loadSettings, hasHydrated]);
 
   // Apply existing highlights to content when highlights change
   useEffect(() => {
@@ -404,7 +412,10 @@ export function EpubReader({ book }: EpubReaderProps) {
   }, [sections, currentSection, book.id, updateProgress]);
 
   // Initialize reader with foliate-js
+  // Wait for hydration to ensure local progress is available
   useEffect(() => {
+    if (!hasHydrated) return;
+
     let mounted = true;
 
     const initReader = async () => {
@@ -543,7 +554,7 @@ export function EpubReader({ book }: EpubReaderProps) {
       blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       blobUrlsRef.current = [];
     };
-  }, [book.file_url, book.id, book.title]);
+  }, [book.file_url, book.id, book.title, hasHydrated, loadBookmarks, loadHighlights, loadProgress]);
 
   // Navigation
   const handleNavigate = useCallback((href: string) => {
