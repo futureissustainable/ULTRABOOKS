@@ -38,7 +38,7 @@ const generateShareCode = (): string => {
   return code;
 };
 
-export const useShareStore = create<ShareState>((set, get) => ({
+export const useShareStore = create<ShareState>((set) => ({
   shares: [],
   isLoading: false,
   isCreating: false,

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useShareStore } from '@/lib/stores/share-store';
 import { Card, Button, Spinner } from '@/components/ui';
 import type { SharedBook, Book, Bookmark, Highlight } from '@/lib/supabase/types';
@@ -101,13 +102,16 @@ export default function SharePage() {
           <Card padding="lg" className="mb-8">
             <div className="flex flex-col md:flex-row gap-6">
               {book.cover_url ? (
-                <img
-                  src={book.cover_url}
-                  alt={book.title}
-                  className="w-40 h-60 object-cover rounded-xl shadow-lg mx-auto md:mx-0"
-                />
+                <div className="relative w-40 h-60 mx-auto md:mx-0 flex-shrink-0">
+                  <Image
+                    src={book.cover_url}
+                    alt={book.title}
+                    fill
+                    className="object-cover rounded-xl shadow-lg"
+                  />
+                </div>
               ) : (
-                <div className="w-40 h-60 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto md:mx-0 shadow-lg">
+                <div className="w-40 h-60 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto md:mx-0 shadow-lg flex-shrink-0">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />

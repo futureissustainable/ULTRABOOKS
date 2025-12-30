@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Modal, Button, Toggle } from '@/components/ui';
 import { useShareStore } from '@/lib/stores/share-store';
 import type { Book } from '@/lib/supabase/types';
@@ -51,11 +52,14 @@ export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
           <>
             <div className="flex items-start gap-4 p-4 bg-[var(--bg-secondary)] rounded-xl">
               {book.cover_url ? (
-                <img
-                  src={book.cover_url}
-                  alt={book.title}
-                  className="w-16 h-24 object-cover rounded-lg shadow-sm"
-                />
+                <div className="relative w-16 h-24 flex-shrink-0">
+                  <Image
+                    src={book.cover_url}
+                    alt={book.title}
+                    fill
+                    className="object-cover rounded-lg shadow-sm"
+                  />
+                </div>
               ) : (
                 <div className="w-16 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
