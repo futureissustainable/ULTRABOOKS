@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 export default function HomePage() {
+  const { user } = useAuthStore();
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
       <Header />
@@ -13,26 +18,28 @@ export default function HomePage() {
         <section className="border-b border-[var(--border-primary)] bg-dot-grid">
           <div className="container-page py-20 md:py-32 lg:py-40">
             <div className="max-w-3xl">
-              <p className="font-[family-name:var(--font-ui)] text-[11px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-6">
+              <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-6">
                 Digital Book Reader
               </p>
-              <h1 className="font-[family-name:var(--font-display)] text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight mb-8 leading-[0.9]">
+              <h1 className="font-[family-name:var(--font-display)] fs-h-lg md:fs-h-lg lg:fs-h-lg uppercase tracking-tight mb-8 leading-[0.9]">
                 Your Books,
                 <br />
                 Everywhere
               </h1>
-              <p className="font-[family-name:var(--font-ui)] text-base text-[var(--text-secondary)] mb-12 max-w-md leading-relaxed">
+              <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] mb-12 max-w-md leading-relaxed">
                 Upload EPUB, PDF, or MOBI files. Sync your reading progress, bookmarks, and highlights across all your devices.
               </p>
               <div className="flex flex-wrap gap-2">
-                <Link href="/signup">
-                  <Button size="lg">Get Started</Button>
+                <Link href={user ? '/library' : '/signup'}>
+                  <Button size="lg">{user ? 'Go to Library' : 'Get Started'}</Button>
                 </Link>
-                <Link href="/login">
-                  <Button variant="secondary" size="lg">
-                    Sign In
-                  </Button>
-                </Link>
+                {!user && (
+                  <Link href="/login">
+                    <Button variant="secondary" size="lg">
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -42,10 +49,10 @@ export default function HomePage() {
         <section className="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
           <div className="container-page section-spacing-lg">
             <div className="mb-16">
-              <p className="font-[family-name:var(--font-ui)] text-[11px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-4">
+              <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-4">
                 Features
               </p>
-              <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl uppercase">
+              <h2 className="font-[family-name:var(--font-display)] fs-h-lg md:fs-h-lg uppercase">
                 Everything You Need
               </h2>
             </div>
@@ -57,8 +64,8 @@ export default function HomePage() {
                     <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9"></path>
                   </svg>
                 </div>
-                <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Cross-Device Sync</h3>
-                <p className="font-[family-name:var(--font-ui)] text-sm text-[var(--text-secondary)] leading-relaxed">
+                <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Cross-Device Sync</h3>
+                <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
                   Reading progress, bookmarks, and highlights sync automatically across all devices in real-time.
                 </p>
               </div>
@@ -71,8 +78,8 @@ export default function HomePage() {
                     <line x1="9" y1="21" x2="9" y2="9"></line>
                   </svg>
                 </div>
-                <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Custom Reader</h3>
-                <p className="font-[family-name:var(--font-ui)] text-sm text-[var(--text-secondary)] leading-relaxed">
+                <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Custom Reader</h3>
+                <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
                   Adjust fonts, sizes, margins, and themes. Your reading experience, tailored to you.
                 </p>
               </div>
@@ -84,8 +91,8 @@ export default function HomePage() {
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
                 </div>
-                <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Highlights & Notes</h3>
-                <p className="font-[family-name:var(--font-ui)] text-sm text-[var(--text-secondary)] leading-relaxed">
+                <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Highlights & Notes</h3>
+                <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
                   Highlight passages and add notes. All annotations saved and synced automatically.
                 </p>
               </div>

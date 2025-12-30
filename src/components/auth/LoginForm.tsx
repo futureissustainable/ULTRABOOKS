@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -9,10 +9,17 @@ import { PixelIcon } from '@/components/icons/PixelIcon';
 
 export function LoginForm() {
   const router = useRouter();
-  const { signIn, isLoading } = useAuthStore();
+  const { user, signIn, isLoading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect logged-in users to library
+  useEffect(() => {
+    if (user) {
+      router.push('/library');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +42,10 @@ export function LoginForm() {
             <PixelIcon name="user" size={20} className="text-[var(--bg-primary)]" />
           </div>
           <div>
-            <p className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+            <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-wide text-[var(--text-secondary)]">
               Welcome back
             </p>
-            <h1 className="font-[family-name:var(--font-display)] text-xl uppercase">Login</h1>
+            <h1 className="font-[family-name:var(--font-display)] fs-h-sm uppercase">Login</h1>
           </div>
         </div>
       </div>
@@ -68,7 +75,7 @@ export function LoginForm() {
 
           {error && (
             <div className="p-3 border border-[var(--text-primary)] bg-[var(--bg-primary)]">
-              <p className="font-[family-name:var(--font-ui)] text-sm text-[var(--text-primary)]">{error}</p>
+              <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-primary)]">{error}</p>
             </div>
           )}
 
@@ -78,7 +85,7 @@ export function LoginForm() {
         </form>
 
         <div className="mt-6 pt-6 border-t border-[var(--border-primary)]">
-          <p className="font-[family-name:var(--font-ui)] text-sm text-center text-[var(--text-secondary)]">
+          <p className="font-[family-name:var(--font-ui)] fs-p-lg text-center text-[var(--text-secondary)]">
             No account?{' '}
             <Link href="/signup" className="text-[var(--text-primary)] hover:underline">
               Sign up
