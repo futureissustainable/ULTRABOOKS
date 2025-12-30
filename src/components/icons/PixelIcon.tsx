@@ -33,7 +33,11 @@ type IconName =
   | 'plus'
   | 'minus'
   | 'user'
+  | 'users'
+  | 'user-plus'
   | 'logout'
+  | 'log-in'
+  | 'log-out'
   | 'home'
   | 'library'
   | 'file-pdf'
@@ -50,7 +54,16 @@ type IconName =
   | 'clock'
   | 'globe'
   | 'share'
-  | 'alert';
+  | 'alert'
+  | 'bell'
+  | 'wifi'
+  | 'wifi-off'
+  | 'mail'
+  | 'link'
+  | 'external-link'
+  | 'message-circle'
+  | 'heart'
+  | 'star';
 
 const icons: Record<IconName, string> = {
   'book': `M4 2h12v20H4V2zm2 2v16h8V4H6zm2 2h4v2H8V6zm0 4h4v2H8v-2z`,
@@ -95,6 +108,19 @@ const icons: Record<IconName, string> = {
   'share': `M18 2a4 4 0 00-3 6.5L9 12l6 3.5A4 4 0 1018 22a4 4 0 00-3-6.5L9 12l6-3.5A4 4 0 0018 2zm0 2a2 2 0 110 4 2 2 0 010-4zM6 10a2 2 0 110 4 2 2 0 010-4zm12 6a2 2 0 110 4 2 2 0 010-4z`,
   'check-circle': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm4 5l-5 5-3-3-1.5 1.5L11 17l6.5-6.5L16 9z`,
   'alert': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm-1 4h2v6h-2V8zm0 8h2v2h-2v-2z`,
+  'users': `M8 4a4 4 0 100 8 4 4 0 000-8zM2 16c0-2 2-4 6-4s6 2 6 4v2H2v-2zm14-8a3 3 0 100 6 3 3 0 000-6zm-2 10c0-.7.2-1.4.5-2h5.5c1.1 0 2 .9 2 2v2h-8v-2z`,
+  'user-plus': `M12 4a4 4 0 100 8 4 4 0 000-8zM6 16c0-2 2-4 6-4s6 2 6 4v4H6v-4zm14-6h-2V8h-2v2h-2v2h2v2h2v-2h2v-2z`,
+  'log-in': `M12 2h8v20h-8v-2h6V4h-6V2zM8 8l4 4-4 4v-3H2v-2h6V8z`,
+  'log-out': `M4 2h8v2H6v16h6v2H4V2zm12 6l4 4-4 4v-3h-6v-2h6V8z`,
+  'bell': `M12 2a1 1 0 011 1v1a6 6 0 015 6v4l2 2v1H4v-1l2-2v-4a6 6 0 015-6V3a1 1 0 011-1zM8 18h8a4 4 0 11-8 0z`,
+  'wifi': `M12 6c-4.4 0-8 2-10 5l2 2c1.5-2 4.5-4 8-4s6.5 2 8 4l2-2c-2-3-5.6-5-10-5zm0 5c-2.2 0-4 1-5 2.5l2 2c.6-.9 1.7-1.5 3-1.5s2.4.6 3 1.5l2-2c-1-1.5-2.8-2.5-5-2.5zm0 5a2 2 0 100 4 2 2 0 000-4z`,
+  'wifi-off': `M2 2l20 20-1.4 1.4L2 3.4 3.4 2zM12 6c-1.4 0-2.7.2-4 .6l2.2 2.2c.6-.1 1.2-.2 1.8-.2 3.5 0 6.5 2 8 4l2-2c-2-3-5.6-5-10-5zm-5.5 6.5l2 2c.6-.5 1.3-.9 2-1.1L8.4 11.3c-.7.4-1.4.8-1.9 1.2zm3.5 3c-.5 0-.9.1-1.3.3l2.3 2.3c.3-.1.6-.1 1-.1.8 0 1.5.3 2 .7l2-2c-1-1-2.4-1.5-4-1.2l-2-.7z`,
+  'mail': `M2 4h20v16H2V4zm2 2v12h16V6H4zm1 1l7 5 7-5v2l-7 5-7-5V7z`,
+  'link': `M10 6H6a4 4 0 000 8h4v-2H6a2 2 0 010-4h4V6zm4 0h4a4 4 0 010 8h-4v-2h4a2 2 0 000-4h-4V6zM8 11h8v2H8v-2z`,
+  'external-link': `M14 3h7v7h-2V6.4l-9.3 9.3-1.4-1.4L17.6 5H14V3zM5 5h5v2H7v10h10v-3h2v5H5V5z`,
+  'message-circle': `M12 2a10 10 0 00-9 14.3L2 22l5.7-1A10 10 0 1012 2zm0 2a8 8 0 11-4.6 14.6L4 20l1.4-3.4A8 8 0 0112 4z`,
+  'heart': `M12 4.5C10.5 2.5 7 2 5 4.5S3 10 12 19c9-9 9-12 7-14.5S13.5 2.5 12 4.5z`,
+  'star': `M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7l3-7z`,
 };
 
 export function PixelIcon({ name, size = 24, className }: PixelIconProps) {

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { useReaderStore } from '@/lib/stores/reader-store';
 import { useBookStore } from '@/lib/stores/book-store';
 import { useThemeStore } from '@/lib/stores/theme-store';
+import { useNotificationStore } from '@/lib/stores/notification-store';
 import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -18,11 +19,33 @@ export default function SettingsPage() {
   const { settings, updateSettings, syncSettings, loadSettings } = useReaderStore();
   const { books, fetchBooks } = useBookStore();
   const { theme, setTheme } = useThemeStore();
+  const {
+    enabled: notificationsEnabled,
+    dailyReminder,
+    reminderTime,
+    permission,
+    isSupported: notificationsSupported,
+    setEnabled: setNotificationsEnabled,
+    setDailyReminder,
+    setReminderTime,
+    requestPermission,
+  } = useNotificationStore();
 
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    if (permission === 'granted') {
+      setNotificationsEnabled(!notificationsEnabled);
+    } else {
+      const granted = await requestPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+      }
+    }
+  };
 
   useEffect(() => {
     loadSettings();
@@ -193,6 +216,75 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Notifications */}
+            {notificationsSupported && (
+              <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+                <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
+                  <PixelIcon name="bell" size={16} className="text-[var(--text-secondary)]" />
+                  <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+                    Notifications
+                  </span>
+                </div>
+
+                <div className="p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em] mb-1">
+                        Enable Notifications
+                      </p>
+                      <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)]">
+                        {permission === 'denied'
+                          ? 'Notifications blocked in browser settings'
+                          : 'Get reminders to keep your reading streak'}
+                      </p>
+                    </div>
+                    <Toggle
+                      checked={notificationsEnabled && permission === 'granted'}
+                      onChange={handleEnableNotifications}
+                      disabled={permission === 'denied'}
+                    />
+                  </div>
+
+                  {notificationsEnabled && permission === 'granted' && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em] mb-1">
+                            Daily Reminder
+                          </p>
+                          <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)]">
+                            Remind me to read if I haven&apos;t today
+                          </p>
+                        </div>
+                        <Toggle
+                          checked={dailyReminder}
+                          onChange={setDailyReminder}
+                        />
+                      </div>
+
+                      {dailyReminder && (
+                        <div>
+                          <label className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)] block mb-2">
+                            Reminder Time
+                          </label>
+                          <input
+                            type="time"
+                            value={reminderTime}
+                            onChange={(e) => setReminderTime(e.target.value)}
+                            className="w-full max-w-[200px] px-4 py-3 font-[family-name:var(--font-mono)] fs-p-lg bg-[var(--bg-primary)] text-[var(--text-primary)] border border-[var(--border-primary)] focus:outline-none focus:border-[var(--text-primary)]"
+                          />
+                        </div>
+                      )}
+
+                      <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-tertiary)]">
+                        Maximum 1 notification per day
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Reader Settings */}
             <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
