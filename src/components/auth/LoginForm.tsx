@@ -27,36 +27,24 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md border border-[var(--border-primary)] bg-[var(--bg-window)] shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
-      {/* Window Titlebar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-titlebar)] border-b border-[var(--border-primary)]">
-        <div className="flex items-center gap-2">
-          <PixelIcon name="user" size={14} className="text-[var(--text-secondary)]" />
-          <span className="font-[family-name:var(--font-ui)] text-[11px] uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-            Login
-          </span>
-        </div>
-        <div className="flex gap-1">
-          <div className="w-3 h-3 border border-[var(--border-primary)]"></div>
-          <div className="w-3 h-3 border border-[var(--border-primary)]"></div>
-          <div className="w-3 h-3 border border-[var(--border-primary)]"></div>
+    <div className="w-full max-w-md border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-[var(--border-primary)]">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-[var(--text-primary)] flex items-center justify-center">
+            <PixelIcon name="user" size={20} className="text-[var(--bg-primary)]" />
+          </div>
+          <div>
+            <p className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+              Welcome back
+            </p>
+            <h1 className="font-[family-name:var(--font-display)] text-xl uppercase">Login</h1>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-8">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-[var(--text-primary)] flex items-center justify-center">
-            <PixelIcon name="user" size={24} className="text-[var(--bg-primary)]" />
-          </div>
-          <div>
-            <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.05em] text-[var(--text-secondary)] mb-1">
-              Welcome back
-            </p>
-            <h1 className="font-[family-name:var(--font-display)] text-2xl uppercase">Login</h1>
-          </div>
-        </div>
-
+      <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             label="Email"
@@ -79,8 +67,8 @@ export function LoginForm() {
           />
 
           {error && (
-            <div className="p-3 border border-[var(--text-primary)] bg-[var(--bg-secondary)]">
-              <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.02em] text-[var(--text-primary)]">{error}</p>
+            <div className="p-3 border border-[var(--text-primary)] bg-[var(--bg-primary)]">
+              <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-primary)]">{error}</p>
             </div>
           )}
 
@@ -89,8 +77,8 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-[var(--border-primary)]">
-          <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.02em] text-center text-[var(--text-secondary)]">
+        <div className="mt-6 pt-6 border-t border-[var(--border-primary)]">
+          <p className="font-[family-name:var(--font-system)] text-sm text-center text-[var(--text-secondary)]">
             No account?{' '}
             <Link href="/signup" className="text-[var(--text-primary)] hover:underline">
               Sign up

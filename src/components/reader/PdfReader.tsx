@@ -379,10 +379,12 @@ export function PdfReader({ book }: PdfReaderProps) {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-        <div className="text-center p-8">
-          <PixelIcon name="close" size={48} className="mx-auto mb-4 text-[var(--color-accent)]" />
-          <h2 className="font-display text-xl mb-2">Error Loading PDF</h2>
-          <p className="font-ui text-sm text-[var(--text-secondary)]">{error}</p>
+        <div className="text-center p-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+          <div className="w-12 h-12 border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-4">
+            <PixelIcon name="close" size={24} className="text-[var(--text-secondary)]" />
+          </div>
+          <h2 className="font-[family-name:var(--font-display)] text-lg uppercase mb-2">Error Loading PDF</h2>
+          <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)]">{error}</p>
         </div>
       </div>
     );
@@ -436,11 +438,11 @@ export function PdfReader({ book }: PdfReaderProps) {
         {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: getThemeBackground() }}>
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 p-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="animate-spin">
-                <PixelIcon name="loading" size={32} />
+                <PixelIcon name="loading" size={24} />
               </div>
-              <p className="font-ui text-sm uppercase tracking-wide animate-pulse-brutal">
+              <p className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide">
                 Loading PDF...
               </p>
             </div>
@@ -470,8 +472,8 @@ export function PdfReader({ book }: PdfReaderProps) {
                 {!page.isRendered && (
                   <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
                     <div className="text-center">
-                      <PixelIcon name="loading" size={24} className="animate-spin mx-auto mb-2" />
-                      <p className="font-mono text-sm">Page {page.pageNum}</p>
+                      <PixelIcon name="loading" size={20} className="animate-spin mx-auto mb-2" />
+                      <p className="font-[family-name:var(--font-mono)] text-xs">Page {page.pageNum}</p>
                     </div>
                   </div>
                 )}
@@ -490,7 +492,7 @@ export function PdfReader({ book }: PdfReaderProps) {
           >
             <PixelIcon name="plus" size={16} />
           </Button>
-          <span className="font-mono text-xs text-center bg-[var(--bg-primary)] border border-[var(--border-primary)] px-2 py-1">
+          <span className="font-[family-name:var(--font-mono)] text-xs text-center bg-[var(--bg-primary)] border border-[var(--border-primary)] px-2 py-1">
             {Math.round(scale * 100)}%
           </span>
           <Button
@@ -504,17 +506,17 @@ export function PdfReader({ book }: PdfReaderProps) {
         </div>
 
         {/* Page Jump Control */}
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 bg-[var(--bg-primary)] border-2 border-[var(--border-primary)] px-4 py-2">
-          <span className="font-mono text-xs uppercase tracking-wide opacity-60">Go to</span>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] px-4 py-2">
+          <span className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide text-[var(--text-secondary)]">Page</span>
           <input
             type="number"
             min={1}
             max={totalPages}
             value={currentPage}
             onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
-            className="w-12 text-center font-mono text-sm border border-[var(--border-primary)] bg-[var(--bg-primary)]"
+            className="w-14 text-center font-[family-name:var(--font-mono)] text-sm border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-2 py-1"
           />
-          <span className="font-mono text-sm">/ {totalPages}</span>
+          <span className="font-[family-name:var(--font-mono)] text-sm text-[var(--text-secondary)]">/ {totalPages}</span>
         </div>
       </div>
 

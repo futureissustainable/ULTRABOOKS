@@ -13,7 +13,7 @@ export default function HomePage() {
         <section className="border-b border-[var(--border-primary)]">
           <div className="container-page py-20 md:py-32 lg:py-40">
             <div className="max-w-3xl">
-              <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-6">
+              <p className="font-[family-name:var(--font-ui)] text-[11px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-6">
                 Digital Book Reader
               </p>
               <h1 className="font-[family-name:var(--font-display)] text-5xl md:text-6xl lg:text-7xl uppercase tracking-tight mb-8 leading-[0.9]">
@@ -42,7 +42,7 @@ export default function HomePage() {
         <section className="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
           <div className="container-page section-spacing-lg">
             <div className="mb-16">
-              <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-4">
+              <p className="font-[family-name:var(--font-ui)] text-[11px] uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-4">
                 Features
               </p>
               <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl uppercase">
@@ -58,7 +58,7 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Cross-Device Sync</h3>
-                <p className="font-[family-name:var(--font-system)] text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)] leading-relaxed">
                   Reading progress, bookmarks, and highlights sync automatically across all devices in real-time.
                 </p>
               </div>
@@ -72,7 +72,7 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Custom Reader</h3>
-                <p className="font-[family-name:var(--font-system)] text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)] leading-relaxed">
                   Adjust fonts, sizes, margins, and themes. Your reading experience, tailored to you.
                 </p>
               </div>
@@ -85,7 +85,7 @@ export default function HomePage() {
                   </svg>
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] text-[12px] uppercase tracking-[0.05em] mb-3">Highlights & Notes</h3>
-                <p className="font-[family-name:var(--font-system)] text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)] leading-relaxed">
                   Highlight passages and add notes. All annotations saved and synced automatically.
                 </p>
               </div>
