@@ -92,25 +92,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-        {/* CTA Section */}
-        <section className="bg-[var(--text-primary)] text-[var(--bg-primary)]">
-          <div className="container-page section-spacing-lg">
-            <div className="max-w-2xl">
-              <h2 className="font-[family-name:var(--font-display)] text-3xl md:text-4xl uppercase mb-6">
-                Start Reading Today
-              </h2>
-              <p className="font-[family-name:var(--font-system)] text-base opacity-70 mb-10 max-w-md leading-relaxed">
-                Create a free account and upload your first book in seconds.
-              </p>
-              <Link href="/signup">
-                <Button size="lg" className="bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--bg-primary)] hover:bg-transparent hover:text-[var(--bg-primary)]">
-                  Create Account
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
