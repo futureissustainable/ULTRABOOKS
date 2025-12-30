@@ -35,7 +35,7 @@ export function BookCard({ book }: BookCardProps) {
       <Card variant="default" padding="none" className="group relative overflow-hidden hover:border-[var(--border-strong)] transition-all duration-[50ms]">
         {/* Cover or Placeholder */}
         <Link href={`/reader/${book.id}`}>
-          <div className="aspect-[3/4] bg-[var(--bg-tertiary)] flex items-center justify-center relative overflow-hidden border-b border-[var(--border-primary)]">
+          <div className="aspect-[2/3] bg-[var(--bg-tertiary)] flex items-center justify-center relative overflow-hidden border-b border-[var(--border-primary)]">
             {book.cover_url ? (
               <Image
                 src={book.cover_url}

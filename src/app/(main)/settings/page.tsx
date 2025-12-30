@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
 
   const handleEnableNotifications = async () => {
     if (permission === 'granted') {
@@ -119,8 +120,10 @@ export default function SettingsPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch {
+      // Export failed - file download was not initiated
     } finally {
       setIsExporting(false);
     }
@@ -382,9 +385,17 @@ export default function SettingsPage() {
                       </p>
                     </div>
                   </div>
-                  <Button variant="secondary" size="sm" onClick={handleExportData} disabled={isExporting}>
-                    {isExporting ? 'Exporting...' : 'Export'}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button variant="secondary" size="sm" onClick={handleExportData} disabled={isExporting}>
+                      {isExporting ? 'Exporting...' : 'Export'}
+                    </Button>
+                    {exportSuccess && (
+                      <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-primary)] flex items-center gap-1">
+                        <PixelIcon name="check" size={12} />
+                        Downloaded
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-[1px] bg-[var(--border-primary)] border border-[var(--border-primary)]">

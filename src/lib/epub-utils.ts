@@ -11,14 +11,12 @@ export async function extractEpubCover(file: File): Promise<Blob | null> {
     // First, find the container.xml to get the OPF file path
     const containerXml = await zip.file('META-INF/container.xml')?.async('text');
     if (!containerXml) {
-      console.log('No container.xml found');
       return null;
     }
 
     // Parse container.xml to find OPF path
     const opfPathMatch = containerXml.match(/full-path="([^"]+\.opf)"/i);
     if (!opfPathMatch) {
-      console.log('No OPF path found in container.xml');
       return null;
     }
 
@@ -28,7 +26,6 @@ export async function extractEpubCover(file: File): Promise<Blob | null> {
     // Read the OPF file
     const opfContent = await zip.file(opfPath)?.async('text');
     if (!opfContent) {
-      console.log('Could not read OPF file');
       return null;
     }
 
@@ -71,7 +68,6 @@ export async function extractEpubCover(file: File): Promise<Blob | null> {
     }
 
     if (!coverPath) {
-      console.log('No cover image reference found in OPF');
       return null;
     }
 
@@ -83,7 +79,6 @@ export async function extractEpubCover(file: File): Promise<Blob | null> {
     // Extract the cover image
     const coverFile = zip.file(fullCoverPath) || zip.file(coverPath);
     if (!coverFile) {
-      console.log('Cover file not found in ZIP:', fullCoverPath);
       return null;
     }
 
@@ -102,8 +97,7 @@ export async function extractEpubCover(file: File): Promise<Blob | null> {
     const mimeType = mimeTypes[ext || ''] || 'image/jpeg';
 
     return new Blob([coverData], { type: mimeType });
-  } catch (error) {
-    console.error('Error extracting EPUB cover:', error);
+  } catch {
     return null;
   }
 }
@@ -146,8 +140,7 @@ export async function extractEpubMetadata(file: File): Promise<{ title?: string;
     }
 
     return metadata;
-  } catch (error) {
-    console.error('Error extracting EPUB metadata:', error);
+  } catch {
     return {};
   }
 }
