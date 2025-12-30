@@ -3,7 +3,7 @@
 export function Footer() {
   return (
     <footer className="border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="container-page py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="font-[family-name:var(--font-display)] text-sm uppercase tracking-tight">
             Ultrabooks

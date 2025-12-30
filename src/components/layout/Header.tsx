@@ -18,7 +18,7 @@ export function Header() {
 
   return (
     <header className="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
-      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-14">
+      <div className="container-page flex items-center justify-between h-14">
         {/* Logo */}
         <Link
           href={user ? '/library' : '/'}
