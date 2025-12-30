@@ -7,6 +7,7 @@ import type { Book } from '@/lib/supabase/types';
 import { useBookStore } from '@/lib/stores/book-store';
 import { Card, Button, Modal } from '@/components/ui';
 import { ShareModal } from './ShareModal';
+import { PixelIcon } from '@/components/icons/PixelIcon';
 
 interface BookCardProps {
   book: Book;
@@ -44,10 +45,7 @@ export function BookCard({ book }: BookCardProps) {
             ) : (
               <div className="flex flex-col items-center gap-3 p-6">
                 <div className="w-12 h-12 bg-[var(--text-primary)] flex items-center justify-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--bg-primary)]">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                  </svg>
+                  <PixelIcon name="book" size={24} className="text-[var(--bg-primary)]" />
                 </div>
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-tertiary)] border border-[var(--border-primary)] px-2 py-1">
                   {book.file_type}
@@ -84,23 +82,14 @@ export function BookCard({ book }: BookCardProps) {
                 className="p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-[50ms] border border-transparent hover:border-[var(--border-primary)]"
                 aria-label="Share book"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
-                  <circle cx="18" cy="5" r="3"></circle>
-                  <circle cx="6" cy="12" r="3"></circle>
-                  <circle cx="18" cy="19" r="3"></circle>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                </svg>
+                <PixelIcon name="share" size={12} />
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-[50ms] border border-transparent hover:border-[var(--border-primary)]"
                 aria-label="Delete book"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
+                <PixelIcon name="trash" size={12} />
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Modal, Button, Toggle } from '@/components/ui';
 import { useShareStore } from '@/lib/stores/share-store';
 import type { Book } from '@/lib/supabase/types';
+import { PixelIcon } from '@/components/icons/PixelIcon';
 
 interface ShareModalProps {
   book: Book;
@@ -62,10 +63,7 @@ export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
                 </div>
               ) : (
                 <div className="w-14 h-20 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-tertiary)]">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
+                  <PixelIcon name="book" size={20} className="text-[var(--text-tertiary)]" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -128,10 +126,7 @@ export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
           <>
             <div className="text-center py-6 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="w-12 h-12 border border-[var(--text-primary)] bg-[var(--text-primary)] flex items-center justify-center mx-auto mb-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--bg-primary)]">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
+                <PixelIcon name="check-circle" size={24} className="text-[var(--bg-primary)]" />
               </div>
               <h3 className="font-[family-name:var(--font-display)] fs-h-sm uppercase mb-2">Link Created</h3>
               <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">

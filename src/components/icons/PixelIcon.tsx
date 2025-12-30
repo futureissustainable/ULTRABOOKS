@@ -29,6 +29,7 @@ type IconName =
   | 'trash'
   | 'edit'
   | 'check'
+  | 'check-circle'
   | 'plus'
   | 'minus'
   | 'user'
@@ -46,7 +47,10 @@ type IconName =
   | 'fire'
   | 'trophy'
   | 'calendar'
-  | 'clock';
+  | 'clock'
+  | 'globe'
+  | 'share'
+  | 'alert';
 
 const icons: Record<IconName, string> = {
   'book': `M4 2h12v20H4V2zm2 2v16h8V4H6zm2 2h4v2H8V6zm0 4h4v2H8v-2z`,
@@ -87,6 +91,10 @@ const icons: Record<IconName, string> = {
   'trophy': `M6 2h12v4h2v4c0 2-1 3-2 4v2h-2v2h2v2h2v2H6v-2h2v-2h2v-2H8v-2c-1-1-2-2-2-4V6h2V2zm2 2v2h8V4H8zm-2 4v2c0 1 .5 2 1 2h10c.5 0 1-1 1-2V8h-2v2H8V8H6z`,
   'calendar': `M6 2h2v2h8V2h2v2h2v18H4V4h2V2zm-2 6v12h16V8H4zm2 2h2v2H6v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zM6 14h2v2H6v-2zm4 0h2v2h-2v-2z`,
   'clock': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm-1 2v7h5v-2h-3V6h-2z`,
+  'globe': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm0 2c-1.5 0-3 3-3 6s1.5 6 3 6 3-3 3-6-1.5-6-3-6zM4 12h4v2H4v-2zm12 0h4v2h-4v-2z`,
+  'share': `M18 2a4 4 0 00-3 6.5L9 12l6 3.5A4 4 0 1018 22a4 4 0 00-3-6.5L9 12l6-3.5A4 4 0 0018 2zm0 2a2 2 0 110 4 2 2 0 010-4zM6 10a2 2 0 110 4 2 2 0 010-4zm12 6a2 2 0 110 4 2 2 0 010-4z`,
+  'check-circle': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm4 5l-5 5-3-3-1.5 1.5L11 17l6.5-6.5L16 9z`,
+  'alert': `M12 2a10 10 0 100 20 10 10 0 000-20zm0 2a8 8 0 110 16 8 8 0 010-16zm-1 4h2v6h-2V8zm0 8h2v2h-2v-2z`,
 };
 
 export function PixelIcon({ name, size = 24, className }: PixelIconProps) {

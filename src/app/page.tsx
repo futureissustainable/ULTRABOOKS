@@ -5,6 +5,7 @@ import { Button } from '@/components/ui';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { PixelIcon } from '@/components/icons/PixelIcon';
 
 export default function HomePage() {
   const { user } = useAuthStore();
@@ -21,7 +22,7 @@ export default function HomePage() {
               <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.1em] text-[var(--text-secondary)] mb-6">
                 Digital Book Reader
               </p>
-              <h1 className="font-[family-name:var(--font-display)] fs-h-lg md:fs-h-lg lg:fs-h-lg uppercase tracking-tight mb-8 leading-[0.9]">
+              <h1 className="font-[family-name:var(--font-display)] fs-h-lg md:fs-h-xl lg:fs-h-xl uppercase tracking-tight mb-8 leading-[0.9]">
                 Your Books,
                 <br />
                 Everywhere
@@ -60,9 +61,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-[1px] bg-[var(--border-primary)] border border-[var(--border-primary)]">
               <div className="bg-[var(--bg-primary)] p-8">
                 <div className="w-12 h-12 border border-[var(--border-primary)] flex items-center justify-center mb-6">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                    <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9m-9 9a9 9 0 0 1 9-9"></path>
-                  </svg>
+                  <PixelIcon name="globe" size={20} className="text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Cross-Device Sync</h3>
                 <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
@@ -72,11 +71,7 @@ export default function HomePage() {
 
               <div className="bg-[var(--bg-primary)] p-8">
                 <div className="w-12 h-12 border border-[var(--border-primary)] flex items-center justify-center mb-6">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                    <rect x="3" y="3" width="18" height="18"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="9" y1="21" x2="9" y2="9"></line>
-                  </svg>
+                  <PixelIcon name="layout" size={20} className="text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Custom Reader</h3>
                 <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
@@ -86,10 +81,7 @@ export default function HomePage() {
 
               <div className="bg-[var(--bg-primary)] p-8">
                 <div className="w-12 h-12 border border-[var(--border-primary)] flex items-center justify-center mb-6">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                  </svg>
+                  <PixelIcon name="edit" size={20} className="text-[var(--text-secondary)]" />
                 </div>
                 <h3 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] mb-3">Highlights & Notes</h3>
                 <p className="font-[family-name:var(--font-ui)] fs-p-lg text-[var(--text-secondary)] leading-relaxed">
