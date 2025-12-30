@@ -16,13 +16,15 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         className={clsx(
           'bg-[var(--bg-primary)]',
+          'rounded-xl',
+          'transition-all duration-200',
           // Variant styles
           {
-            'border-2 border-[var(--border-primary)]': variant === 'default' || variant === 'elevated',
-            'shadow-[4px_4px_0_var(--border-primary)]': variant === 'elevated',
+            'border border-[var(--border-primary)]': variant === 'default',
+            'border border-[var(--border-primary)] shadow-[var(--shadow-md)]': variant === 'elevated',
             'border border-[var(--border-subtle)]': variant === 'outlined',
           },
-          // Padding styles - more generous
+          // Padding styles
           {
             'p-0': padding === 'none',
             'p-4': padding === 'sm',
@@ -32,10 +34,9 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           },
           // Hover effect
           hoverable && [
-            'transition-all duration-100',
             'cursor-pointer',
-            'hover:translate-x-[-2px] hover:translate-y-[-2px]',
-            'hover:shadow-[6px_6px_0_var(--border-primary)]',
+            'hover:border-[var(--border-hover)]',
+            'hover:shadow-[var(--shadow-lg)]',
           ],
           className
         )}
