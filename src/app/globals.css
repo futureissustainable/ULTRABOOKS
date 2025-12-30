@@ -563,70 +563,19 @@
   }
 }
 
-/* Strong gradient overlay for text readability */
+/* Simple vignette overlay - books visible in center, fades at edges */
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-}
-
-/* Main gradient layer - using multiple small steps to prevent banding */
-.hero-gradient-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    /* Radial vignette from center */
-    radial-gradient(ellipse 120% 100% at 50% 50%,
-      transparent 0%,
-      transparent 20%,
-      rgba(10, 10, 10, 0.2) 35%,
-      rgba(10, 10, 10, 0.4) 50%,
-      rgba(10, 10, 10, 0.7) 65%,
-      rgba(10, 10, 10, 0.9) 80%,
-      var(--bg-primary) 100%
-    ),
-    /* Top edge fade */
-    linear-gradient(to bottom,
-      var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.8) 5%,
-      rgba(10, 10, 10, 0.4) 15%,
-      transparent 25%
-    ),
-    /* Bottom edge fade */
-    linear-gradient(to top,
-      var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.8) 5%,
-      rgba(10, 10, 10, 0.4) 15%,
-      transparent 25%
-    ),
-    /* Left edge fade */
-    linear-gradient(to right,
-      var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.7) 5%,
-      rgba(10, 10, 10, 0.3) 12%,
-      transparent 20%
-    ),
-    /* Right edge fade */
-    linear-gradient(to left,
-      var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.7) 5%,
-      rgba(10, 10, 10, 0.3) 12%,
-      transparent 20%
-    );
-}
-
-/* Noise layer to eliminate gradient banding */
-.hero-gradient-overlay::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.4;
-  mix-blend-mode: overlay;
-  /* SVG noise filter for dithering */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
+  background: radial-gradient(ellipse 80% 70% at 50% 50%,
+    transparent 0%,
+    transparent 30%,
+    rgba(10, 10, 10, 0.4) 55%,
+    rgba(10, 10, 10, 0.8) 75%,
+    var(--bg-primary) 100%
+  );
 }
 
 /* ============================================

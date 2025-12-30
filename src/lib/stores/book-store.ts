@@ -10,6 +10,8 @@ interface BookState {
   isLoadingBook: boolean;
   isUploading: boolean;
   error: string | null;
+  hasFetched: boolean; // Track if we've attempted to fetch library
+  hasFetchedBook: boolean; // Track if we've attempted to fetch current book
   fetchBooks: () => Promise<void>;
   fetchBook: (id: string) => Promise<void>;
   uploadBook: (file: File) => Promise<{ book: Book | null; error: string | null }>;
@@ -25,15 +27,29 @@ export const useBookStore = create<BookState>((set, get) => ({
   isLoadingBook: false,
   isUploading: false,
   error: null,
+  hasFetched: false,
+  hasFetchedBook: false,
 
   fetchBooks: async () => {
+    // Prevent duplicate fetches
+    if (get().isLoading) return;
+
     const supabase = createClient();
     set({ isLoading: true, error: null });
+
+    // Timeout failsafe (1s) - actual fix is hasFetched pattern
+    const timeoutId = setTimeout(() => {
+      if (get().isLoading) {
+        console.warn('fetchBooks timeout - forcing loading to end');
+        set({ isLoading: false, hasFetched: true, error: null });
+      }
+    }, 1000);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        set({ isLoading: false, error: 'Not authenticated' });
+        clearTimeout(timeoutId);
+        set({ isLoading: false, hasFetched: true, error: null, books: [] });
         return;
       }
 
@@ -43,21 +59,35 @@ export const useBookStore = create<BookState>((set, get) => ({
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
+      clearTimeout(timeoutId);
+
       if (error) {
-        set({ isLoading: false, error: error.message });
+        set({ isLoading: false, hasFetched: true, error: error.message });
         return;
       }
 
-      set({ books: data || [], isLoading: false });
+      set({ books: data || [], isLoading: false, hasFetched: true });
     } catch (err) {
-      set({ isLoading: false, error: 'Failed to fetch books' });
+      clearTimeout(timeoutId);
+      set({ isLoading: false, hasFetched: true, error: 'Failed to fetch books' });
     }
   },
 
   fetchBook: async (id: string) => {
+    // Prevent duplicate fetches
+    if (get().isLoadingBook) return;
+
+    // Reset hasFetchedBook when fetching a new book
     const supabase = createClient();
-    // Use separate loading state for individual book
-    set({ isLoadingBook: true, error: null });
+    set({ isLoadingBook: true, hasFetchedBook: false, error: null, currentBook: null });
+
+    // Timeout failsafe (1s) - actual fix is hasFetchedBook pattern
+    const timeoutId = setTimeout(() => {
+      if (get().isLoadingBook) {
+        console.warn('fetchBook timeout - forcing loading to end');
+        set({ isLoadingBook: false, hasFetchedBook: true, error: null });
+      }
+    }, 1000);
 
     try {
       const { data, error } = await supabase
@@ -66,14 +96,17 @@ export const useBookStore = create<BookState>((set, get) => ({
         .eq('id', id)
         .single();
 
+      clearTimeout(timeoutId);
+
       if (error) {
-        set({ isLoadingBook: false, error: error.message });
+        set({ isLoadingBook: false, hasFetchedBook: true, error: error.message });
         return;
       }
 
-      set({ currentBook: data, isLoadingBook: false });
+      set({ currentBook: data, isLoadingBook: false, hasFetchedBook: true });
     } catch (err) {
-      set({ isLoadingBook: false, error: 'Failed to fetch book' });
+      clearTimeout(timeoutId);
+      set({ isLoadingBook: false, hasFetchedBook: true, error: 'Failed to fetch book' });
     }
   },
 
@@ -251,6 +284,6 @@ export const useBookStore = create<BookState>((set, get) => ({
   },
 
   clearCurrentBook: () => {
-    set({ currentBook: null, isLoadingBook: false });
+    set({ currentBook: null, isLoadingBook: false, hasFetchedBook: false });
   },
 }));
