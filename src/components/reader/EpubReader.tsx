@@ -589,7 +589,7 @@ export function EpubReader({ book }: EpubReaderProps) {
             <PixelIcon name="close" size={24} className="text-[var(--text-secondary)]" />
           </div>
           <h2 className="font-[family-name:var(--font-display)] text-lg uppercase mb-2">Error Loading Book</h2>
-          <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)]">{error}</p>
+          <p className="font-[family-name:var(--font-ui)] text-sm text-[var(--text-secondary)]">{error}</p>
         </div>
       </div>
     );
