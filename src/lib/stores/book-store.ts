@@ -72,9 +72,19 @@ export const useBookStore = create<BookState>((set, get) => ({
   },
 
   fetchBook: async (id: string) => {
+    // Prevent duplicate fetches
+    if (get().isLoadingBook) return;
+
     const supabase = createClient();
-    // Use separate loading state for individual book
     set({ isLoadingBook: true, error: null });
+
+    // Timeout failsafe - always end loading after 10 seconds
+    const timeoutId = setTimeout(() => {
+      if (get().isLoadingBook) {
+        console.warn('fetchBook timeout - forcing loading to end');
+        set({ isLoadingBook: false, error: 'Request timed out' });
+      }
+    }, 10000);
 
     try {
       const { data, error } = await supabase
@@ -83,6 +93,8 @@ export const useBookStore = create<BookState>((set, get) => ({
         .eq('id', id)
         .single();
 
+      clearTimeout(timeoutId);
+
       if (error) {
         set({ isLoadingBook: false, error: error.message });
         return;
@@ -90,6 +102,7 @@ export const useBookStore = create<BookState>((set, get) => ({
 
       set({ currentBook: data, isLoadingBook: false });
     } catch (err) {
+      clearTimeout(timeoutId);
       set({ isLoadingBook: false, error: 'Failed to fetch book' });
     }
   },
