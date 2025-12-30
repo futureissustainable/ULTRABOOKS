@@ -33,8 +33,8 @@ export default function ClubsPage() {
               </span>
             </div>
             <div className="p-6 md:p-12 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]">
-                <PixelIcon name="users" size={40} className="text-[var(--text-secondary)]" />
+              <div className="w-16 h-16 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]">
+                <PixelIcon name="users" size={32} className="text-[var(--text-secondary)]" />
               </div>
               <h1 className="font-[family-name:var(--font-display)] fs-h-lg md:fs-h-xl uppercase mb-4">
                 Book Clubs

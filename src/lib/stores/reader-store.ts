@@ -450,7 +450,6 @@ if (typeof window !== 'undefined') {
   // Small delay to let onRehydrateStorage fire first if it can
   setTimeout(() => {
     if (!useReaderStore.getState()._hasHydrated) {
-      console.warn('Zustand hydration fallback triggered - onRehydrateStorage may have failed');
       useReaderStore.setState({ _hasHydrated: true });
     }
   }, 100);

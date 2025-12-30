@@ -11,7 +11,6 @@ export function ServiceWorkerRegistration() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('Service Worker registered:', registration.scope);
           setServiceWorkerReady(true);
           loadCachedBooks();
 
@@ -21,24 +20,15 @@ export function ServiceWorkerRegistration() {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New version available
-                  console.log('New service worker available');
+                  // New version available - could trigger update prompt
                 }
               });
             }
           });
         })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+        .catch(() => {
+          // Service worker failed - app works without offline support
         });
-
-      // Listen for messages from service worker
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data.type === 'CACHED_BOOKS_LIST') {
-          // Handle cached books list
-          console.log('Cached books:', event.data.payload.urls);
-        }
-      });
     }
   }, [setServiceWorkerReady, loadCachedBooks]);
 
