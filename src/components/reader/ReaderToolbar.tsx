@@ -56,10 +56,10 @@ export function ReaderToolbar({
 
         {/* Center - Title and Progress */}
         <div className="hidden sm:flex items-center gap-4">
-          <span className="font-[family-name:var(--font-system)] text-sm truncate max-w-[300px]">
+          <span className="font-[family-name:var(--font-display)] text-sm uppercase tracking-tight truncate max-w-[300px]">
             {title}
           </span>
-          <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--text-tertiary)]">
+          <span className="font-[family-name:var(--font-mono)] text-[10px] text-[var(--text-tertiary)]">
             {currentPage !== undefined && totalPages !== undefined && (
               <>{currentPage}/{totalPages} &middot; </>
             )}

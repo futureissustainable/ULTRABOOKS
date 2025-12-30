@@ -408,10 +408,10 @@ export function PdfReader({ book }: PdfReaderProps) {
         onMouseDown={(e) => handleMouseDown(e, 'left')}
       >
         <div className={clsx(
-          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-16 rounded-full transition-all duration-200',
+          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-16 transition-all duration-200',
           'opacity-0 group-hover:opacity-60 group-hover:cursor-ew-resize',
-          'bg-gray-500',
-          isDragging && dragSide === 'left' && 'opacity-100 w-1 h-24 bg-[var(--color-accent)]'
+          'bg-[var(--text-secondary)]',
+          isDragging && dragSide === 'left' && 'opacity-100 w-1 h-24 bg-[var(--text-primary)]'
         )} style={{ opacity: isDragging && dragSide === 'left' ? 1 : undefined }} />
       </div>
 
@@ -422,10 +422,10 @@ export function PdfReader({ book }: PdfReaderProps) {
         onMouseDown={(e) => handleMouseDown(e, 'right')}
       >
         <div className={clsx(
-          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-16 rounded-full transition-all duration-200',
+          'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-16 transition-all duration-200',
           'opacity-0 group-hover:opacity-60 group-hover:cursor-ew-resize',
-          'bg-gray-500',
-          isDragging && dragSide === 'right' && 'opacity-100 w-1 h-24 bg-[var(--color-accent)]'
+          'bg-[var(--text-secondary)]',
+          isDragging && dragSide === 'right' && 'opacity-100 w-1 h-24 bg-[var(--text-primary)]'
         )} style={{ opacity: isDragging && dragSide === 'right' ? 1 : undefined }} />
       </div>
 
@@ -522,7 +522,7 @@ export function PdfReader({ book }: PdfReaderProps) {
 
       {/* Width indicator during drag */}
       {isDragging && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white px-3 py-1 rounded font-mono text-sm">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[var(--text-primary)] text-[var(--bg-primary)] border border-[var(--border-primary)] px-3 py-1 font-[family-name:var(--font-mono)] text-sm">
           {Math.round(contentWidth)}%
         </div>
       )}
