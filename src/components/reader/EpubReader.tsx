@@ -147,28 +147,45 @@ export function EpubReader({ book }: EpubReaderProps) {
         background-color: transparent !important;
       }
 
-      /* Highlight styles */
+      /* Highlight styles - monochrome */
       .epub-highlight {
-        border-radius: 2px;
         padding: 0 2px;
         margin: 0 -2px;
         cursor: pointer;
       }
 
+      .epub-highlight-light {
+        background-color: rgba(200, 200, 200, 0.4) !important;
+      }
+
+      .epub-highlight-medium {
+        background-color: rgba(150, 150, 150, 0.5) !important;
+      }
+
+      .epub-highlight-dark {
+        background-color: rgba(100, 100, 100, 0.6) !important;
+      }
+
+      .epub-highlight-solid {
+        background-color: rgba(50, 50, 50, 0.7) !important;
+        color: white !important;
+      }
+
+      /* Legacy color support */
       .epub-highlight-yellow {
-        background-color: rgba(234, 179, 8, 0.4) !important;
+        background-color: rgba(200, 200, 200, 0.4) !important;
       }
 
       .epub-highlight-green {
-        background-color: rgba(34, 197, 94, 0.4) !important;
+        background-color: rgba(150, 150, 150, 0.5) !important;
       }
 
       .epub-highlight-blue {
-        background-color: rgba(59, 130, 246, 0.4) !important;
+        background-color: rgba(100, 100, 100, 0.6) !important;
       }
 
       .epub-highlight-red {
-        background-color: rgba(220, 38, 38, 0.4) !important;
+        background-color: rgba(50, 50, 50, 0.7) !important;
       }
     `;
 
@@ -535,10 +552,12 @@ export function EpubReader({ book }: EpubReaderProps) {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-        <div className="text-center p-8">
-          <PixelIcon name="close" size={48} className="mx-auto mb-4 text-[var(--color-accent)]" />
-          <h2 className="font-display text-xl mb-2">Error Loading Book</h2>
-          <p className="font-ui text-sm text-[var(--text-secondary)]">{error}</p>
+        <div className="text-center p-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+          <div className="w-12 h-12 border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-4">
+            <PixelIcon name="close" size={24} className="text-[var(--text-secondary)]" />
+          </div>
+          <h2 className="font-[family-name:var(--font-display)] text-lg uppercase mb-2">Error Loading Book</h2>
+          <p className="font-[family-name:var(--font-system)] text-sm text-[var(--text-secondary)]">{error}</p>
         </div>
       </div>
     );
@@ -590,57 +609,64 @@ export function EpubReader({ book }: EpubReaderProps) {
       {/* Loading state */}
       {isLoading && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: themeColors.background }}>
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 p-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
             <div className="animate-spin">
-              <PixelIcon name="loading" size={32} />
+              <PixelIcon name="loading" size={24} />
             </div>
-            <p className="font-ui text-sm uppercase tracking-wide animate-pulse-brutal">
+            <p className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide">
               {loadingStatus}
             </p>
           </div>
         </div>
       )}
 
-      {/* Highlight popup */}
+      {/* Highlight popup - monochrome intensity options */}
       {showHighlightPopup && selection && (
         <div
-          className="fixed z-50 flex gap-1 p-2 rounded-lg shadow-lg border-2 border-[var(--border-primary)]"
+          className="fixed z-50 flex gap-0 border border-[var(--border-primary)] bg-[var(--bg-primary)]"
           style={{
-            left: Math.min(selection.rect.left + selection.rect.width / 2 - 80, window.innerWidth - 180),
-            top: selection.rect.top - 50 + window.scrollY,
-            background: themeColors.background,
+            left: Math.min(selection.rect.left + selection.rect.width / 2 - 100, window.innerWidth - 220),
+            top: selection.rect.top - 44 + window.scrollY,
           }}
         >
           <button
-            onClick={() => handleCreateHighlight('yellow')}
-            className="w-8 h-8 rounded-full bg-yellow-400 hover:scale-110 transition-transform border-2 border-yellow-600"
-            title="Yellow highlight"
-          />
+            onClick={() => handleCreateHighlight('light')}
+            className="w-10 h-10 bg-[var(--gray-200)] hover:opacity-80 transition-opacity flex items-center justify-center font-[family-name:var(--font-mono)] text-[9px] text-black border-r border-[var(--border-primary)]"
+            title="Light highlight"
+          >
+            25%
+          </button>
           <button
-            onClick={() => handleCreateHighlight('green')}
-            className="w-8 h-8 rounded-full bg-green-400 hover:scale-110 transition-transform border-2 border-green-600"
-            title="Green highlight"
-          />
+            onClick={() => handleCreateHighlight('medium')}
+            className="w-10 h-10 bg-[var(--gray-400)] hover:opacity-80 transition-opacity flex items-center justify-center font-[family-name:var(--font-mono)] text-[9px] text-black border-r border-[var(--border-primary)]"
+            title="Medium highlight"
+          >
+            50%
+          </button>
           <button
-            onClick={() => handleCreateHighlight('blue')}
-            className="w-8 h-8 rounded-full bg-blue-400 hover:scale-110 transition-transform border-2 border-blue-600"
-            title="Blue highlight"
-          />
+            onClick={() => handleCreateHighlight('dark')}
+            className="w-10 h-10 bg-[var(--gray-600)] hover:opacity-80 transition-opacity flex items-center justify-center font-[family-name:var(--font-mono)] text-[9px] text-white border-r border-[var(--border-primary)]"
+            title="Dark highlight"
+          >
+            75%
+          </button>
           <button
-            onClick={() => handleCreateHighlight('red')}
-            className="w-8 h-8 rounded-full bg-red-400 hover:scale-110 transition-transform border-2 border-red-600"
-            title="Red highlight"
-          />
+            onClick={() => handleCreateHighlight('solid')}
+            className="w-10 h-10 bg-[var(--gray-800)] hover:opacity-80 transition-opacity flex items-center justify-center font-[family-name:var(--font-mono)] text-[9px] text-white border-r border-[var(--border-primary)]"
+            title="Solid highlight"
+          >
+            100%
+          </button>
           <button
             onClick={() => {
               window.getSelection()?.removeAllRanges();
               setSelection(null);
               setShowHighlightPopup(false);
             }}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="w-10 h-10 flex items-center justify-center hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] transition-colors text-[var(--text-secondary)]"
             title="Cancel"
           >
-            ✕
+            <PixelIcon name="close" size={14} />
           </button>
         </div>
       )}

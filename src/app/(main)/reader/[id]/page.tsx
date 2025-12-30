@@ -39,25 +39,11 @@ export default function ReaderPage({ params }: ReaderPageProps) {
   if (isLoadingBook || !currentBook) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-        <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)] shadow-[4px_4px_0_rgba(0,0,0,0.5)]">
-          {/* Window titlebar */}
-          <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-titlebar)] border-b border-[var(--border-primary)]">
-            <span className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-              Loading
-            </span>
-            <div className="flex gap-1">
-              <div className="w-2 h-2 border border-[var(--border-primary)]" />
-              <div className="w-2 h-2 border border-[var(--border-primary)]" />
-              <div className="w-2 h-2 border border-[var(--border-primary)]" />
-            </div>
-          </div>
-          {/* Content */}
-          <div className="p-8 flex flex-col items-center gap-4">
-            <Spinner size="lg" />
-            <p className="font-[family-name:var(--font-ui)] text-[10px] uppercase tracking-[0.05em] animate-pulse">
-              Loading book...
-            </p>
-          </div>
+        <div className="flex flex-col items-center gap-4 p-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+          <Spinner size="lg" />
+          <p className="font-[family-name:var(--font-ui)] text-xs uppercase tracking-wide">
+            Loading book...
+          </p>
         </div>
       </div>
     );
