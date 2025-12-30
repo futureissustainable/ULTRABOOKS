@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button, Input, Select, Slider, Toggle } from '@/components/ui';
+import { PixelIcon } from '@/components/icons/PixelIcon';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -133,10 +134,7 @@ export default function SettingsPage() {
             {/* Account Settings */}
             <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
+                <PixelIcon name="user" size={16} className="text-[var(--text-secondary)]" />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
                   Account
                 </span>
@@ -174,11 +172,7 @@ export default function SettingsPage() {
             {/* Appearance */}
             <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                  <circle cx="12" cy="12" r="5"></circle>
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                </svg>
+                <PixelIcon name="sun" size={16} className="text-[var(--text-secondary)]" />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
                   Appearance
                 </span>
@@ -203,10 +197,7 @@ export default function SettingsPage() {
             {/* Reader Settings */}
             <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
+                <PixelIcon name="book" size={16} className="text-[var(--text-secondary)]" />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
                   Reader
                 </span>
@@ -271,11 +262,7 @@ export default function SettingsPage() {
             {/* Data & Export */}
             <div className="border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
               <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-tertiary)] border-b border-[var(--border-primary)]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" className="text-[var(--text-secondary)]">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
+                <PixelIcon name="download" size={16} className="text-[var(--text-secondary)]" />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
                   Data
                 </span>

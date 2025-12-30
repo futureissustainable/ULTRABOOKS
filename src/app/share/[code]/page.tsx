@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useShareStore } from '@/lib/stores/share-store';
 import { Card, Button, Spinner } from '@/components/ui';
 import type { SharedBook, Book, Bookmark, Highlight } from '@/lib/supabase/types';
+import { PixelIcon } from '@/components/icons/PixelIcon';
 
 interface SharedBookData {
   share: SharedBook;
@@ -55,12 +56,8 @@ export default function SharePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
         <div className="text-center max-w-md mx-auto px-6">
-          <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
+          <div className="w-20 h-20 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-6">
+            <PixelIcon name="alert" size={40} className="text-[var(--text-secondary)]" />
           </div>
           <h1 className="fs-h-lg font-bold mb-3">Share Not Found</h1>
           <p className="text-[var(--text-secondary)] mb-8">
@@ -111,11 +108,8 @@ export default function SharePage() {
                   />
                 </div>
               ) : (
-                <div className="w-40 h-60 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto md:mx-0 shadow-lg flex-shrink-0">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
+                <div className="w-40 h-60 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] flex items-center justify-center mx-auto md:mx-0 flex-shrink-0">
+                  <PixelIcon name="book" size={48} className="text-[var(--text-secondary)]" />
                 </div>
               )}
               <div className="flex-1 text-center md:text-left">
@@ -149,19 +143,15 @@ export default function SharePage() {
           {share.include_bookmarks && bookmarks && bookmarks.length > 0 && (
             <div className="mb-8">
               <h2 className="fs-h-sm font-semibold mb-4 flex items-center gap-2">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                </svg>
+                <PixelIcon name="bookmark" size={20} />
                 Bookmarks
               </h2>
               <div className="space-y-3">
                 {bookmarks.map((bookmark) => (
                   <Card key={bookmark.id} padding="md" className="hover:bg-[var(--bg-secondary)] transition-colors">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
-                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                        </svg>
+                      <div className="w-8 h-8 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] flex items-center justify-center flex-shrink-0">
+                        <PixelIcon name="bookmark" size={16} className="text-[var(--text-secondary)]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium fs-p-lg">{bookmark.title || 'Untitled Bookmark'}</h3>
@@ -185,10 +175,7 @@ export default function SharePage() {
           {share.include_highlights && highlights && highlights.length > 0 && (
             <div className="mb-8">
               <h2 className="fs-h-sm font-semibold mb-4 flex items-center gap-2">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
+                <PixelIcon name="highlight" size={20} />
                 Highlights
               </h2>
               <div className="space-y-3">
