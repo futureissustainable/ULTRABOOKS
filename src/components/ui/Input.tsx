@@ -14,11 +14,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
     return (
-      <div className={clsx('flex flex-col gap-2', fullWidth && 'w-full')}>
+      <div className={clsx('flex flex-col gap-1.5', fullWidth && 'w-full')}>
         {label && (
           <label
             htmlFor={inputId}
-            className="font-body text-[11px] uppercase tracking-[0.08em] text-[var(--text-secondary)]"
+            className="text-sm font-medium text-[var(--text-secondary)]"
           >
             {label}
           </label>
@@ -27,21 +27,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={clsx(
-            'font-body px-4 py-3 text-[13px]',
+            'px-4 py-2.5 text-[15px]',
             'bg-[var(--bg-primary)] text-[var(--text-primary)]',
-            'border-2 border-[var(--border-primary)]',
+            'border border-[var(--border-primary)] rounded-lg',
             'placeholder:text-[var(--text-tertiary)]',
-            'focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2',
-            'disabled:opacity-40 disabled:cursor-not-allowed',
-            'transition-colors duration-100',
-            error && 'border-[var(--accent)] focus:ring-[var(--accent)]',
+            'focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent',
+            'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[var(--bg-secondary)]',
+            'transition-all duration-150',
+            error && 'border-[var(--error)] focus:ring-[var(--error)]',
             fullWidth && 'w-full',
             className
           )}
           {...props}
         />
         {error && (
-          <span className="font-body text-[11px] text-[var(--accent)]">
+          <span className="text-sm text-[var(--error)]">
             {error}
           </span>
         )}

@@ -222,6 +222,50 @@ export interface Database {
           updated_at?: string;
         };
       };
+      shared_books: {
+        Row: {
+          id: string;
+          book_id: string;
+          user_id: string;
+          share_code: string;
+          include_bookmarks: boolean;
+          include_highlights: boolean;
+          include_notes: boolean;
+          is_active: boolean;
+          view_count: number;
+          expires_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          book_id: string;
+          user_id: string;
+          share_code: string;
+          include_bookmarks?: boolean;
+          include_highlights?: boolean;
+          include_notes?: boolean;
+          is_active?: boolean;
+          view_count?: number;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          book_id?: string;
+          user_id?: string;
+          share_code?: string;
+          include_bookmarks?: boolean;
+          include_highlights?: boolean;
+          include_notes?: boolean;
+          is_active?: boolean;
+          view_count?: number;
+          expires_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -242,3 +286,4 @@ export type ReadingProgress = Database['public']['Tables']['reading_progress']['
 export type Bookmark = Database['public']['Tables']['bookmarks']['Row'];
 export type Highlight = Database['public']['Tables']['highlights']['Row'];
 export type UserSettings = Database['public']['Tables']['user_settings']['Row'];
+export type SharedBook = Database['public']['Tables']['shared_books']['Row'];

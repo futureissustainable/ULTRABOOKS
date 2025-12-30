@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createClient } from '@/lib/supabase/client';
 import type { Book } from '@/lib/supabase/types';
+import { extractEpubCover, extractEpubMetadata } from '@/lib/epub-utils';
 
 interface BookState {
   books: Book[];
@@ -102,7 +103,8 @@ export const useBookStore = create<BookState>((set, get) => ({
       }
 
       // Upload file to storage
-      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      const timestamp = Date.now();
+      const filePath = `${user.id}/${timestamp}-${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('books')
         .upload(filePath, file);
@@ -117,8 +119,47 @@ export const useBookStore = create<BookState>((set, get) => ({
         .from('books')
         .getPublicUrl(filePath);
 
-      // Extract title from filename
-      const title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
+      // Extract title from filename (fallback)
+      let title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
+      let author: string | undefined;
+      let coverUrl: string | undefined;
+
+      // For EPUBs, try to extract cover and metadata
+      if (fileType === 'epub') {
+        try {
+          // Extract metadata (title, author)
+          const metadata = await extractEpubMetadata(file);
+          if (metadata.title) {
+            title = metadata.title;
+          }
+          if (metadata.author) {
+            author = metadata.author;
+          }
+
+          // Extract and upload cover
+          const coverBlob = await extractEpubCover(file);
+          if (coverBlob) {
+            const coverExt = coverBlob.type.split('/')[1] || 'jpg';
+            const coverPath = `${user.id}/covers/${timestamp}-cover.${coverExt}`;
+
+            const { error: coverUploadError } = await supabase.storage
+              .from('books')
+              .upload(coverPath, coverBlob, {
+                contentType: coverBlob.type,
+              });
+
+            if (!coverUploadError) {
+              const { data: coverUrlData } = supabase.storage
+                .from('books')
+                .getPublicUrl(coverPath);
+              coverUrl = coverUrlData.publicUrl;
+            }
+          }
+        } catch (epubError) {
+          console.error('Error processing EPUB:', epubError);
+          // Continue without cover/metadata - not a critical error
+        }
+      }
 
       // Create book record
       const { data: book, error: insertError } = await supabase
@@ -126,6 +167,8 @@ export const useBookStore = create<BookState>((set, get) => ({
         .insert({
           user_id: user.id,
           title,
+          author,
+          cover_url: coverUrl,
           file_url: urlData.publicUrl,
           file_type: fileType,
           file_size: file.size,
