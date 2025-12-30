@@ -12,14 +12,29 @@ interface ReaderSettings {
   textAlign: 'left' | 'justify';
 }
 
+// Local progress storage for each book
+interface LocalProgress {
+  [bookId: string]: {
+    currentLocation: string;
+    currentPage: number | null;
+    progressPercentage: number;
+    lastReadAt: string;
+  };
+}
+
 interface ReaderState {
+  // Hydration state
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
+
   // Settings
   settings: ReaderSettings;
   updateSettings: (settings: Partial<ReaderSettings>) => void;
   syncSettings: () => Promise<void>;
   loadSettings: () => Promise<void>;
 
-  // Reading progress
+  // Reading progress - local storage for offline support
+  localProgress: LocalProgress;
   currentLocation: string | null;
   currentPage: number | null;
   progressPercentage: number;
@@ -64,6 +79,10 @@ const defaultSettings: ReaderSettings = {
 export const useReaderStore = create<ReaderState>()(
   persist(
     (set, get) => ({
+      // Hydration state
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+
       // Settings
       settings: defaultSettings,
 
@@ -105,69 +124,134 @@ export const useReaderStore = create<ReaderState>()(
           .single();
 
         if (data) {
+          // Only update from Supabase if there's actual data
+          // This ensures syncing across devices while respecting local persisted settings
           set({
             settings: {
-              theme: data.theme,
-              fontFamily: data.font_family,
-              fontSize: data.font_size,
-              lineHeight: data.line_height,
-              margins: data.margins,
-              textAlign: data.text_align,
+              theme: data.theme || get().settings.theme,
+              fontFamily: data.font_family || get().settings.fontFamily,
+              fontSize: data.font_size || get().settings.fontSize,
+              lineHeight: data.line_height || get().settings.lineHeight,
+              margins: data.margins ?? get().settings.margins,
+              textAlign: data.text_align || get().settings.textAlign,
             },
           });
+        } else {
+          // If no Supabase settings exist, sync current local settings to Supabase
+          get().syncSettings();
         }
       },
 
-      // Reading progress
+      // Reading progress - local storage for offline support
+      localProgress: {},
       currentLocation: null,
       currentPage: null,
       progressPercentage: 0,
 
       updateProgress: async (bookId, location, page, percentage) => {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const now = new Date().toISOString();
 
-        set({
+        // Always save locally first for offline support
+        set((state) => ({
           currentLocation: location,
           currentPage: page || null,
           progressPercentage: percentage || 0,
-        });
+          localProgress: {
+            ...state.localProgress,
+            [bookId]: {
+              currentLocation: location,
+              currentPage: page || null,
+              progressPercentage: percentage || 0,
+              lastReadAt: now,
+            },
+          },
+        }));
 
-        await supabase
-          .from('reading_progress')
-          .upsert({
-            user_id: user.id,
-            book_id: bookId,
-            current_location: location,
-            current_page: page,
-            progress_percentage: percentage || 0,
-            last_read_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+        // Then try to sync to Supabase
+        try {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          await supabase
+            .from('reading_progress')
+            .upsert({
+              user_id: user.id,
+              book_id: bookId,
+              current_location: location,
+              current_page: page,
+              progress_percentage: percentage || 0,
+              last_read_at: now,
+              updated_at: now,
+            });
+        } catch (error) {
+          // Silently fail - local progress is saved
+          console.warn('Failed to sync progress to server:', error);
+        }
       },
 
       loadProgress: async (bookId) => {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return null;
-
-        const { data } = await supabase
-          .from('reading_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('book_id', bookId)
-          .single();
-
-        if (data) {
+        // First check local progress (works offline)
+        const localData = get().localProgress[bookId];
+        if (localData) {
           set({
-            currentLocation: data.current_location,
-            currentPage: data.current_page,
-            progressPercentage: data.progress_percentage,
+            currentLocation: localData.currentLocation,
+            currentPage: localData.currentPage,
+            progressPercentage: localData.progressPercentage,
           });
         }
 
-        return data;
+        // Then try to get from Supabase (may have more recent data from another device)
+        try {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            // Not logged in, return local data
+            return localData ? {
+              current_location: localData.currentLocation,
+              current_page: localData.currentPage,
+              progress_percentage: localData.progressPercentage,
+            } as ReadingProgress : null;
+          }
+
+          const { data } = await supabase
+            .from('reading_progress')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('book_id', bookId)
+            .single();
+
+          if (data) {
+            // Compare timestamps - use the more recent one
+            const serverTime = new Date(data.last_read_at || 0).getTime();
+            const localTime = localData ? new Date(localData.lastReadAt).getTime() : 0;
+
+            if (serverTime >= localTime) {
+              // Server data is newer, use it
+              set({
+                currentLocation: data.current_location,
+                currentPage: data.current_page,
+                progressPercentage: data.progress_percentage,
+              });
+              return data;
+            }
+          }
+
+          // Return local data if no server data or local is newer
+          return localData ? {
+            current_location: localData.currentLocation,
+            current_page: localData.currentPage,
+            progress_percentage: localData.progressPercentage,
+          } as ReadingProgress : data;
+        } catch (error) {
+          console.warn('Failed to load progress from server:', error);
+          // Return local data on error
+          return localData ? {
+            current_location: localData.currentLocation,
+            current_page: localData.currentPage,
+            progress_percentage: localData.progressPercentage,
+          } as ReadingProgress : null;
+        }
       },
 
       // Bookmarks
@@ -328,7 +412,16 @@ export const useReaderStore = create<ReaderState>()(
     }),
     {
       name: 'ultrabooks-reader-settings',
-      partialize: (state) => ({ settings: state.settings }),
+      partialize: (state) => ({
+        settings: state.settings,
+        localProgress: state.localProgress,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );
+
+// Hook to wait for hydration
+export const useReaderSettingsHydrated = () => useReaderStore((state) => state._hasHydrated);

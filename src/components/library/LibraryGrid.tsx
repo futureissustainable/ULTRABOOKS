@@ -1,16 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBookStore } from '@/lib/stores/book-store';
 import { BookCard } from './BookCard';
 import { BookUpload } from './BookUpload';
+import { WhatsNextRow } from './WhatsNextRow';
 import { Button, Spinner } from '@/components/ui';
 import { PixelIcon } from '@/components/icons/PixelIcon';
+import { clsx } from 'clsx';
 
 export function LibraryGrid() {
-  const { books, fetchBooks, isLoading, error } = useBookStore();
+  const { books, fetchBooks, isLoading, error, uploadBook, isUploading } = useBookStore();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragError, setDragError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBooks();
@@ -21,6 +25,58 @@ export function LibraryGrid() {
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       book.author?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Get 4 most recently added books for "What's Next" section
+  const recentBooks = [...books]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 4);
+
+  // Library-wide drag and drop handlers
+  const validateFile = (file: File): boolean => {
+    const acceptedTypes = ['.epub', '.pdf', '.mobi'];
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!acceptedTypes.includes(extension)) {
+      setDragError(`Invalid file type. Accepted formats: ${acceptedTypes.join(', ')}`);
+      return false;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      setDragError('File too large. Maximum size is 100MB.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragError(null);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the container
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    setDragError(null);
+
+    const file = e.dataTransfer.files[0];
+    if (file && validateFile(file)) {
+      const result = await uploadBook(file);
+      if (result.error) {
+        setDragError(result.error);
+        setTimeout(() => setDragError(null), 5000);
+      }
+    }
+  }, [uploadBook]);
 
   if (isLoading && books.length === 0) {
     return (
@@ -36,10 +92,34 @@ export function LibraryGrid() {
   }
 
   return (
-    <div>
+    <div
+      className={clsx('library-drop-zone', isDragging && 'dragging')}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Upload Progress Indicator */}
+      {isUploading && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
+          <Spinner size="sm" />
+          <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em]">
+            Uploading...
+          </span>
+        </div>
+      )}
+
+      {/* Drag Error Toast */}
+      {dragError && (
+        <div className="fixed bottom-4 right-4 z-50 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--text-primary)]">
+          <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em] text-[var(--text-primary)]">
+            {dragError}
+          </p>
+        </div>
+      )}
+
       {/* Toolbar - OS Style */}
-      <div className="flex flex-col sm:flex-row gap-1 mb-8 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-        <div className="flex-1 relative border-r border-[var(--border-primary)] sm:border-r">
+      <div className="flex flex-col sm:flex-row gap-1 mb-6 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+        <div className="flex-1 relative border-b sm:border-b-0 sm:border-r border-[var(--border-primary)]">
           <PixelIcon
             name="search"
             size={14}
@@ -53,7 +133,7 @@ export function LibraryGrid() {
             className="w-full pl-10 pr-4 py-3 font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em] bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:bg-[var(--bg-tertiary)] transition-all duration-[50ms] border-0"
           />
         </div>
-        <Button onClick={() => setIsUploadOpen(true)} className="border-0 px-6">
+        <Button onClick={() => setIsUploadOpen(true)} className="border-0 px-6 justify-center">
           <PixelIcon name="upload" size={12} className="mr-2" />
           Upload
         </Button>
@@ -61,44 +141,75 @@ export function LibraryGrid() {
 
       {/* Error State */}
       {error && (
-        <div className="p-4 border border-[var(--border-primary)] bg-[var(--bg-secondary)] mb-8">
+        <div className="p-4 border border-[var(--border-primary)] bg-[var(--bg-secondary)] mb-6">
           <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.02em] text-[var(--text-primary)]">{error}</p>
         </div>
       )}
 
       {/* Empty State */}
       {books.length === 0 ? (
-        <div className="text-center py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+        <div className="text-center py-16 md:py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
           <div className="w-16 h-16 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center">
             <PixelIcon name="library" size={32} className="text-[var(--text-tertiary)]" />
           </div>
           <h2 className="font-[family-name:var(--font-display)] fs-h-lg uppercase mb-3">No Books</h2>
-          <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)] mb-8 max-w-sm mx-auto">
-            Upload your first EPUB, PDF, or MOBI file to get started
+          <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)] mb-8 max-w-sm mx-auto px-4">
+            Upload your first EPUB, PDF, or MOBI file to get started. Drag & drop anywhere or click below.
           </p>
           <Button onClick={() => setIsUploadOpen(true)}>
             <PixelIcon name="upload" size={12} className="mr-2" />
             Upload First Book
           </Button>
         </div>
-      ) : filteredBooks.length === 0 ? (
-        <div className="text-center py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-          <div className="w-16 h-16 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center">
-            <PixelIcon name="search" size={32} className="text-[var(--text-tertiary)]" />
-          </div>
-          <h2 className="font-[family-name:var(--font-display)] fs-h-sm uppercase mb-3">No Results</h2>
-          <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-            No books match your search
-          </p>
-        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-[1px] bg-[var(--border-primary)] border border-[var(--border-primary)]">
-          {filteredBooks.map((book) => (
-            <div key={book.id} className="bg-[var(--bg-primary)]">
-              <BookCard book={book} />
+        <>
+          {/* What's Next Section - Only show if we have books and not searching */}
+          {recentBooks.length > 0 && !searchQuery && (
+            <WhatsNextRow books={recentBooks} />
+          )}
+
+          {/* Search Results Info */}
+          {searchQuery && (
+            <div className="mb-4">
+              <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+                {filteredBooks.length} {filteredBooks.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
+              </p>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* No Search Results */}
+          {filteredBooks.length === 0 ? (
+            <div className="text-center py-16 md:py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+              <div className="w-16 h-16 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center">
+                <PixelIcon name="search" size={32} className="text-[var(--text-tertiary)]" />
+              </div>
+              <h2 className="font-[family-name:var(--font-display)] fs-h-sm uppercase mb-3">No Results</h2>
+              <p className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+                No books match your search
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Section Header */}
+              {!searchQuery && (
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+                    All Books ({books.length})
+                  </h2>
+                </div>
+              )}
+
+              {/* Book Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-[1px] bg-[var(--border-primary)] border border-[var(--border-primary)]">
+                {filteredBooks.map((book) => (
+                  <div key={book.id} className="bg-[var(--bg-primary)]">
+                    <BookCard book={book} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* Upload Modal */}

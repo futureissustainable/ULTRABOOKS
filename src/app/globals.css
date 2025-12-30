@@ -463,6 +463,353 @@
 }
 
 /* ============================================
+   NETFLIX HERO - SCROLLING BOOK COVERS
+   ============================================ */
+.hero-books-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.hero-books-row {
+  display: flex;
+  gap: 16px;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.hero-books-row-1 {
+  top: 5%;
+  animation: scroll-left 60s linear infinite;
+  transform: rotate(-3deg);
+  opacity: 0.4;
+}
+
+.hero-books-row-2 {
+  top: 35%;
+  animation: scroll-right 50s linear infinite;
+  transform: rotate(2deg);
+  opacity: 0.5;
+}
+
+.hero-books-row-3 {
+  top: 65%;
+  animation: scroll-left 70s linear infinite;
+  transform: rotate(-2deg);
+  opacity: 0.35;
+}
+
+.hero-book-cover {
+  width: 100px;
+  height: 150px;
+  flex-shrink: 0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .hero-book-cover {
+    width: 120px;
+    height: 180px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-book-cover {
+    width: 140px;
+    height: 210px;
+  }
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0) rotate(-3deg);
+  }
+  100% {
+    transform: translateX(-50%) rotate(-3deg);
+  }
+}
+
+@keyframes scroll-right {
+  0% {
+    transform: translateX(-50%) rotate(2deg);
+  }
+  100% {
+    transform: translateX(0) rotate(2deg);
+  }
+}
+
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, var(--bg-primary) 0%, transparent 20%, transparent 80%, var(--bg-primary) 100%),
+    linear-gradient(to bottom, var(--bg-primary) 0%, transparent 30%, transparent 70%, var(--bg-primary) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================
+   MOBILE MENU
+   ============================================ */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms ease, visibility 150ms ease;
+}
+
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  max-width: 85vw;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-primary);
+  z-index: 101;
+  transform: translateX(100%);
+  transition: transform 150ms ease;
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu-item {
+  padding: var(--space-4);
+  font-family: var(--font-ui);
+  font-size: var(--fs-p-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  transition: all 50ms ease;
+}
+
+.mobile-menu-item:hover,
+.mobile-menu-item:active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* ============================================
+   LIBRARY DROP ZONE
+   ============================================ */
+.library-drop-zone {
+  position: relative;
+  min-height: 200px;
+}
+
+.library-drop-zone.dragging::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 2px dashed var(--text-primary);
+  background: var(--bg-primary);
+  opacity: 0.9;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.library-drop-zone.dragging::after {
+  content: 'DROP TO UPLOAD';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-ui);
+  font-size: var(--fs-h-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+  z-index: 11;
+  pointer-events: none;
+}
+
+/* ============================================
+   WHAT'S NEXT / CONTINUE READING ROW
+   ============================================ */
+.book-row {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-600) var(--bg-secondary);
+  -webkit-overflow-scrolling: touch;
+}
+
+.book-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.book-row::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.book-row::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+  border: 1px solid var(--border-primary);
+}
+
+.book-row-item {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+@media (min-width: 640px) {
+  .book-row-item {
+    width: 160px;
+  }
+}
+
+@media (min-width: 768px) {
+  .book-row-item {
+    width: 180px;
+  }
+}
+
+/* ============================================
+   OFFLINE INDICATOR
+   ============================================ */
+.offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-p-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.offline-badge.available {
+  border-color: var(--gray-400);
+}
+
+.offline-badge.available::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--gray-400);
+}
+
+/* ============================================
+   PWA INSTALL PROMPT
+   ============================================ */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 200ms ease;
+}
+
+.pwa-install-banner.visible {
+  transform: translateY(0);
+}
+
+/* ============================================
+   MOBILE RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 639px) {
+  /* Ensure touch targets are at least 44px */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Full-width buttons on mobile */
+  .mobile-full-width {
+    width: 100%;
+  }
+
+  /* Stack flex containers on mobile */
+  .mobile-stack {
+    flex-direction: column;
+  }
+
+  /* Hide on mobile */
+  .mobile-hide {
+    display: none !important;
+  }
+
+  /* Modal takes full screen on mobile */
+  .modal {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+  /* Reduce container padding on mobile */
+  .container-page {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+}
+
+/* Tablet breakpoint adjustments */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .container-page {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+/* ============================================
+   READER MOBILE OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 639px) {
+  .reader-toolbar {
+    padding: var(--space-2);
+  }
+
+  .reader-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* ============================================
    OS WINDOW COMPONENTS
    ============================================ */
 @layer components {
@@ -1769,4 +2116,351 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1px;
   }
+}
+
+/* ============================================
+   DESIGN MICRO-OPTIMIZATIONS
+   Psychological polish for 10x dev feel
+   ============================================ */
+
+/* Skeleton Loading States */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--bg-secondary) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-text:last-child {
+  width: 70%;
+}
+
+.skeleton-cover {
+  aspect-ratio: 3/4;
+}
+
+/* Hover Micro-Animations */
+.hover-lift {
+  transition: transform var(--duration-fast) var(--ease-sharp);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-glow {
+  transition: box-shadow var(--duration-fast) var(--ease-sharp);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 0 1px var(--text-primary);
+}
+
+.hover-scale {
+  transition: transform var(--duration-fast) var(--ease-sharp);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-scale:active {
+  transform: scale(0.98);
+}
+
+/* Button Press Effect */
+.btn-press {
+  transition: transform var(--duration-instant) var(--ease-sharp);
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Celebration Animation */
+@keyframes celebrate {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.15);
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.98);
+  }
+}
+
+.animate-celebrate {
+  animation: celebrate 0.6s var(--ease-sharp);
+}
+
+/* Streak Fire Animation */
+@keyframes fire-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+.fire-active {
+  animation: fire-pulse 1s ease-in-out infinite;
+}
+
+/* Number Counter Animation */
+@keyframes count-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-count-up {
+  animation: count-up 0.3s var(--ease-sharp);
+}
+
+/* Toast Slide In */
+@keyframes toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-slide-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.toast-enter {
+  animation: toast-slide-in 0.2s var(--ease-sharp);
+}
+
+.toast-exit {
+  animation: toast-slide-out 0.2s var(--ease-sharp);
+}
+
+/* Page Transitions */
+@keyframes page-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.page-enter {
+  animation: page-fade-in 0.2s ease-out;
+}
+
+/* Interactive Focus Ring */
+.focus-ring {
+  transition: outline-offset var(--duration-fast) var(--ease-sharp);
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+/* Card Hover State */
+.card-interactive {
+  transition:
+    border-color var(--duration-fast) var(--ease-sharp),
+    background-color var(--duration-fast) var(--ease-sharp);
+}
+
+.card-interactive:hover {
+  border-color: var(--border-strong);
+}
+
+.card-interactive:active {
+  background-color: var(--bg-tertiary);
+}
+
+/* Progress Animation */
+@keyframes progress-fill {
+  0% {
+    width: 0;
+  }
+}
+
+.progress-animate {
+  animation: progress-fill 0.6s var(--ease-sharp);
+}
+
+/* Stagger Animation for Lists */
+.stagger-children > * {
+  opacity: 0;
+  animation: stagger-fade-in 0.3s var(--ease-sharp) forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(n+7) { animation-delay: 300ms; }
+
+@keyframes stagger-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth Number Transitions */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .hover-lift:hover,
+  .hover-scale:hover,
+  .hover-glow:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Larger tap targets on touch */
+  button,
+  [role="button"],
+  input,
+  select,
+  a {
+    min-height: 44px;
+  }
+
+  /* Remove hover states on touch */
+  .btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-primary);
+  }
+
+  .btn:active {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Better Text Selection */
+::selection {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Improve Input Appearance on iOS */
+input,
+textarea,
+select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Loading Dots Animation */
+@keyframes loading-dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+.loading-dots::after {
+  content: '';
+  animation: loading-dots 1.5s steps(1) infinite;
 }

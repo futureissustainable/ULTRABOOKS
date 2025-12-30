@@ -8,6 +8,7 @@ import { useBookStore } from '@/lib/stores/book-store';
 import { Card, Button, Modal } from '@/components/ui';
 import { ShareModal } from './ShareModal';
 import { PixelIcon } from '@/components/icons/PixelIcon';
+import { DownloadForOffline } from '@/components/pwa/DownloadForOffline';
 
 interface BookCardProps {
   book: Book;
@@ -77,6 +78,12 @@ export function BookCard({ book }: BookCardProps) {
               {formatFileSize(book.file_size)}
             </span>
             <div className="flex items-center gap-1">
+              <DownloadForOffline
+                bookId={book.id}
+                fileUrl={book.file_url}
+                variant="icon"
+                className="!p-1 !min-w-0 !min-h-0 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-[50ms] !border-transparent hover:!border-[var(--border-primary)]"
+              />
               <button
                 onClick={() => setShowShareModal(true)}
                 className="p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-[50ms] border border-transparent hover:border-[var(--border-primary)]"
