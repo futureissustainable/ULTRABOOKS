@@ -260,10 +260,10 @@ export const useBookStore = create<BookState>((set, get) => ({
           if (coverBlob) {
             const coverExt = coverBlob.type.split('/')[1] || 'jpg';
             const coverId = generateFileId();
-            const coverPath = `${user.id}/covers/${coverId}.${coverExt}`;
+            const coverPath = `${user.id}/${coverId}.${coverExt}`;
 
             const { error: coverUploadError } = await supabase.storage
-              .from('books')
+              .from('covers')
               .upload(coverPath, coverBlob, {
                 contentType: coverBlob.type,
               });
@@ -432,10 +432,10 @@ export const useBookStore = create<BookState>((set, get) => ({
               if (coverBlob) {
                 const coverExt = coverBlob.type.split('/')[1] || 'jpg';
                 const coverId = generateFileId();
-                const coverPath = `${user.id}/covers/${coverId}.${coverExt}`;
+                const coverPath = `${user.id}/${coverId}.${coverExt}`;
 
                 const { error: coverUploadError } = await supabase.storage
-                  .from('books')
+                  .from('covers')
                   .upload(coverPath, coverBlob, { contentType: coverBlob.type });
 
                 if (!coverUploadError) {
@@ -521,12 +521,14 @@ export const useBookStore = create<BookState>((set, get) => ({
           await supabase.storage.from('books').remove([filePath]);
         }
 
-        // Delete cover if it exists
+        // Delete cover from covers bucket if it exists
         if (book.cover_url) {
           const coverPath = isLegacyUrl(book.cover_url)
             ? extractPathFromLegacyUrl(book.cover_url)
             : book.cover_url;
           if (coverPath) {
+            // Try covers bucket first (new), then books bucket (legacy)
+            await supabase.storage.from('covers').remove([coverPath]);
             await supabase.storage.from('books').remove([coverPath]);
           }
         }
@@ -637,16 +639,19 @@ export const useBookStore = create<BookState>((set, get) => ({
           : sourceBook.cover_url;
 
         if (sourceCoverPath) {
-          // Download from books bucket
-          const coverData = await supabase.storage.from('books').download(sourceCoverPath);
+          // Try covers bucket first, then books bucket (legacy)
+          let coverData = await supabase.storage.from('covers').download(sourceCoverPath);
+          if (coverData.error) {
+            coverData = await supabase.storage.from('books').download(sourceCoverPath);
+          }
 
           if (coverData.data) {
             const coverExt = sourceCoverPath.split('.').pop() || 'jpg';
             const coverId = generateFileId();
-            newCoverPath = `${user.id}/covers/${coverId}.${coverExt}`;
+            newCoverPath = `${user.id}/${coverId}.${coverExt}`;
 
             await supabase.storage
-              .from('books')
+              .from('covers')
               .upload(newCoverPath, coverData.data);
           }
         }
@@ -671,7 +676,7 @@ export const useBookStore = create<BookState>((set, get) => ({
         // Cleanup uploaded files on error
         await supabase.storage.from('books').remove([newFilePath]);
         if (newCoverPath) {
-          await supabase.storage.from('books').remove([newCoverPath]);
+          await supabase.storage.from('covers').remove([newCoverPath]);
         }
         set({ isCopying: false, error: insertError.message });
         return { book: null, error: insertError.message };
