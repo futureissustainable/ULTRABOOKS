@@ -200,12 +200,7 @@ export function ReaderSettings() {
                     : 'border-[var(--border-primary)] hover:border-[var(--border-strong)]'
                 )}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="2" />
-                  <rect x="3" y="9" width="12" height="2" />
-                  <rect x="3" y="14" width="18" height="2" />
-                  <rect x="3" y="19" width="10" height="2" />
-                </svg>
+                <PixelIcon name="align-left" size={14} />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase">Left</span>
               </button>
               <button
@@ -217,12 +212,7 @@ export function ReaderSettings() {
                     : 'border-[var(--border-primary)] hover:border-[var(--border-strong)]'
                 )}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="2" />
-                  <rect x="3" y="9" width="18" height="2" />
-                  <rect x="3" y="14" width="18" height="2" />
-                  <rect x="3" y="19" width="18" height="2" />
-                </svg>
+                <PixelIcon name="align-justify" size={14} />
                 <span className="font-[family-name:var(--font-ui)] fs-p-sm uppercase">Justify</span>
               </button>
             </div>
