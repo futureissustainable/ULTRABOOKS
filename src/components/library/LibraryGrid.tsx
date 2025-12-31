@@ -275,10 +275,13 @@ export function LibraryGrid() {
             Select
           </button>
         )}
-        <Button onClick={() => setIsUploadOpen(true)} className="border-0 px-6 justify-center">
-          <PixelIcon name="upload" size={12} className="mr-2" />
+        <button
+          onClick={() => setIsUploadOpen(true)}
+          className="px-4 py-3 flex items-center justify-center gap-2 font-ui fs-p-sm uppercase tracking-[0.02em] hover:bg-[var(--bg-tertiary)] transition-all duration-100 focus-ring"
+        >
+          <PixelIcon name="upload" size={14} />
           Upload
-        </Button>
+        </button>
       </div>
 
       {/* Error State */}

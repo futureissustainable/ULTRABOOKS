@@ -90,12 +90,12 @@ export function BookRow({
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           {/* View All Button */}
           {onViewAll && (
             <button
               onClick={onViewAll}
-              className="font-ui fs-p-sm uppercase tracking-wide text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5"
+              className="px-3 py-2 font-ui fs-p-sm uppercase tracking-wide text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-1.5 border border-transparent hover:border-[var(--border-primary)]"
             >
               View All
               <PixelIcon name="chevron-right" size={12} />
@@ -104,11 +104,11 @@ export function BookRow({
 
           {/* Scroll Buttons */}
           {hasBooks && (
-            <div className="flex gap-1 ml-2">
+            <div className="flex gap-1">
               <button
                 onClick={() => scroll('left')}
                 disabled={!canScrollLeft}
-                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[var(--text-primary)]"
+                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
                 aria-label="Scroll left"
               >
                 <PixelIcon name="chevron-left" size={14} />
@@ -116,7 +116,7 @@ export function BookRow({
               <button
                 onClick={() => scroll('right')}
                 disabled={!canScrollRight}
-                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[var(--text-primary)]"
+                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
                 aria-label="Scroll right"
               >
                 <PixelIcon name="chevron-right" size={14} />

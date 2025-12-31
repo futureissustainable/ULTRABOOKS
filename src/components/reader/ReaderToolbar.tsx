@@ -83,7 +83,7 @@ export function ReaderToolbar({
           <button
             onClick={() => setStreakModalOpen(true)}
             className={clsx(
-              'flex items-center gap-1.5 px-2 py-1.5 transition-colors border border-[var(--border-primary)]',
+              'flex items-center gap-1.5 px-3 py-1.5 transition-colors border border-[var(--border-primary)]',
               isGoalMet
                 ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
                 : 'text-[var(--text-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)]'
