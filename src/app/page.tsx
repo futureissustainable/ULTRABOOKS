@@ -88,7 +88,7 @@ export default function HomePage() {
               {/* Loss Aversion: Never lose progress */}
               <div className="text-center group">
                 <div className="w-16 h-16 mx-auto mb-6 bg-[var(--text-primary)] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <PixelIcon name="shield" size={28} className="text-[var(--bg-primary)]" />
+                  <PixelIcon name="sync" size={28} className="text-[var(--bg-primary)]" />
                 </div>
                 <h3 className="font-display text-xl uppercase tracking-tight mb-3">
                   Never Lose Your Place
@@ -101,7 +101,7 @@ export default function HomePage() {
               {/* Autonomy: Complete control */}
               <div className="text-center group">
                 <div className="w-16 h-16 mx-auto mb-6 bg-[var(--text-primary)] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <PixelIcon name="sliders" size={28} className="text-[var(--bg-primary)]" />
+                  <PixelIcon name="font" size={28} className="text-[var(--bg-primary)]" />
                 </div>
                 <h3 className="font-display text-xl uppercase tracking-tight mb-3">
                   Your Way, Always
