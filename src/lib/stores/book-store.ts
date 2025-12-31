@@ -48,16 +48,20 @@ export const useBookStore = create<BookState>((set, get) => ({
   hasFetchedBook: false,
 
   fetchBooks: async () => {
-    // Prevent duplicate fetches
-    if (get().isLoading) return;
+    // Prevent duplicate fetches - but allow retry if we're stuck
+    const state = get();
+    if (state.isLoading && state.hasFetched) return;
 
-    const supabase = createClient();
-    set({ isLoading: true, error: null });
+    // Mark as fetched AND loading immediately - prevents infinite loading state
+    // Even if something goes wrong, we won't be stuck showing "Loading..."
+    set({ isLoading: true, hasFetched: true, error: null });
 
     try {
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+
       if (!user) {
-        set({ isLoading: false, hasFetched: true, error: null, books: [] });
+        set({ isLoading: false, books: [] });
         return;
       }
 
@@ -68,13 +72,14 @@ export const useBookStore = create<BookState>((set, get) => ({
         .order('updated_at', { ascending: false });
 
       if (error) {
-        set({ isLoading: false, hasFetched: true, error: error.message });
+        set({ isLoading: false, error: error.message });
         return;
       }
 
-      set({ books: data || [], isLoading: false, hasFetched: true });
+      set({ books: data || [], isLoading: false });
     } catch (err) {
-      set({ isLoading: false, hasFetched: true, error: 'Failed to fetch books' });
+      console.error('fetchBooks error:', err);
+      set({ isLoading: false, error: 'Failed to fetch books' });
     }
   },
 
