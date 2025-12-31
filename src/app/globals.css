@@ -515,9 +515,9 @@
 }
 
 .hero-book-cover {
-  /* Mobile: 25% larger (was 80x120) */
-  width: 100px;
-  height: 150px;
+  /* Mobile: 50% larger to compensate for 6 rows instead of 9 */
+  width: 120px;
+  height: 180px;
   flex-shrink: 0;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-subtle);
@@ -536,13 +536,6 @@
 
   .hero-books-row {
     gap: 16px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero-book-cover {
-    width: 120px;
-    height: 180px;
   }
 }
 
