@@ -77,9 +77,9 @@ export function LibraryGrid() {
     }
   }, [uploadBook]);
 
-  // Show loading only if we're actively loading AND haven't fetched yet
-  // This prevents infinite loading - once hasFetched is true, we show content
-  if (!hasFetched && (isLoading || books.length === 0)) {
+  // Show loading only when actively fetching and we have no content to display
+  // Once we have any content (books or classics), we can show it while loading more
+  if (isLoading && books.length === 0 && !hasFetched) {
     return (
       <div className="flex items-center justify-center py-32">
         <div className="flex flex-col items-center gap-6">
