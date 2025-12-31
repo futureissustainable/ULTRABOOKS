@@ -6,7 +6,7 @@ interface ShareOptions {
   includeBookmarks: boolean;
   includeHighlights: boolean;
   includeNotes: boolean;
-  expiresInDays?: number;
+  expiresInHours?: number;  // Changed from days to hours for more granular control
 }
 
 interface SharedBookData {
@@ -98,9 +98,9 @@ export const useShareStore = create<ShareState>((set) => ({
       }
 
       const shareCode = generateShareCode();
-      const expiresAt = options.expiresInDays
-        ? new Date(Date.now() + options.expiresInDays * 24 * 60 * 60 * 1000).toISOString()
-        : null;
+      // Default to 24 hours if not specified
+      const expiresInHours = options.expiresInHours || 24;
+      const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString();
 
       const { data, error } = await supabase
         .from('shared_books')

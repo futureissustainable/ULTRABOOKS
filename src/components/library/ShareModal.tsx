@@ -14,10 +14,18 @@ interface ShareModalProps {
   onClose: () => void;
 }
 
+const EXPIRY_OPTIONS = [
+  { value: 1, label: '1 hour' },
+  { value: 6, label: '6 hours' },
+  { value: 12, label: '12 hours' },
+  { value: 24, label: '24 hours' },
+] as const;
+
 export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
   const { createShare, isCreating } = useShareStore();
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [expiresInHours, setExpiresInHours] = useState(24);
   const [options, setOptions] = useState({
     includeBookmarks: true,
     includeHighlights: true,
@@ -28,7 +36,10 @@ export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
   const coverUrl = getCoverUrl(book.cover_url);
 
   const handleCreateShare = async () => {
-    const { shareCode, error } = await createShare(book.id, options);
+    const { shareCode, error } = await createShare(book.id, {
+      ...options,
+      expiresInHours,
+    });
 
     if (shareCode && !error) {
       const link = `${window.location.origin}/share/${shareCode}`;
@@ -114,6 +125,27 @@ export function ShareModal({ book, isOpen, onClose }: ShareModalProps) {
                     onChange={(checked) => setOptions({ ...options, includeNotes: checked })}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Expiry Selection */}
+            <div className="space-y-3">
+              <h4 className="font-[family-name:var(--font-ui)] fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">Link expires in</h4>
+              <div className="grid grid-cols-4 gap-2">
+                {EXPIRY_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setExpiresInHours(option.value)}
+                    className={`p-3 border text-center transition-colors ${
+                      expiresInHours === option.value
+                        ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                        : 'border-[var(--border-primary)] hover:border-[var(--text-secondary)]'
+                    }`}
+                  >
+                    <span className="font-[family-name:var(--font-mono)] fs-p-sm">{option.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
