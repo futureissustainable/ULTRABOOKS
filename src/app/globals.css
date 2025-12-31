@@ -574,25 +574,15 @@
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  /* Mobile: strong overall coverage for readability */
+  /* Mobile: very dark overlay - books are subtle texture only */
   background:
-    /* Strong left-to-right fade */
-    linear-gradient(to right,
-      var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.95) 25%,
-      rgba(10, 10, 10, 0.7) 50%,
-      rgba(10, 10, 10, 0.4) 75%,
-      rgba(10, 10, 10, 0.3) 100%
-    ),
-    /* Top fade */
+    /* Almost solid dark overlay for mobile readability */
     linear-gradient(to bottom,
       var(--bg-primary) 0%,
-      transparent 15%
-    ),
-    /* Bottom fade */
-    linear-gradient(to top,
-      var(--bg-primary) 0%,
-      transparent 20%
+      rgba(10, 10, 10, 0.92) 10%,
+      rgba(10, 10, 10, 0.88) 50%,
+      rgba(10, 10, 10, 0.92) 90%,
+      var(--bg-primary) 100%
     );
 }
 
