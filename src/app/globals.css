@@ -483,10 +483,11 @@
 /* The entire grid is tilted in 3D like Netflix */
 .hero-books-grid {
   position: absolute;
-  top: -30%;
-  left: -20%;
-  right: -20%;
-  bottom: -30%;
+  /* Mobile: extend much further to fill full viewport height hero */
+  top: -80%;
+  left: -40%;
+  right: -40%;
+  bottom: -80%;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -523,6 +524,11 @@
 
 @media (min-width: 768px) {
   .hero-books-grid {
+    /* Desktop: hero is shorter so use less extension */
+    top: -30%;
+    left: -20%;
+    right: -20%;
+    bottom: -30%;
     gap: 16px;
   }
 
