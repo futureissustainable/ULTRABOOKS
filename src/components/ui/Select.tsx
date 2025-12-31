@@ -35,7 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             'focus:outline-none focus:border-[var(--text-primary)]',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'transition-all duration-[100ms]',
-            "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23737373' d='M2 4l4 4 4-4'/%3E%3C/svg%3E\")] bg-no-repeat bg-[right_12px_center]",
+            "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23737373' d='M7 8H5v2h2v2h2v2h2v2h2v-2h2v-2h2v-2h2V8h-2v2h-2v2h-2v2h-2v-2H9v-2H7V8z'/%3E%3C/svg%3E\")] bg-no-repeat bg-[right_12px_center]",
             'pr-8',
             error && 'border-[var(--text-primary)]',
             fullWidth && 'w-full',
