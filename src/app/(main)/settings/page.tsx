@@ -52,8 +52,9 @@ export default function SettingsPage() {
   useEffect(() => {
     if (hasHydrated) {
       loadSettings();
+      // fetchBooks is now idempotent - safe to call, will skip if already fetched
+      fetchBooks();
     }
-    fetchBooks();
   }, [loadSettings, fetchBooks, hasHydrated]);
 
   useEffect(() => {

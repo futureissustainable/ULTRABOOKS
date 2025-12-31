@@ -61,11 +61,11 @@ export function LibraryGrid() {
   }, [books, selectedBooks]);
 
   useEffect(() => {
-    // Only fetch if we haven't fetched yet
-    if (!hasFetched && !isLoading) {
+    // Fetch books on mount if we haven't fetched yet
+    if (!hasFetched) {
       fetchBooks();
     }
-  }, [fetchBooks, hasFetched, isLoading]);
+  }, [fetchBooks, hasFetched]);
 
   const filteredBooks = books.filter(
     (book) =>
@@ -119,9 +119,9 @@ export function LibraryGrid() {
     }
   }, [uploadBook]);
 
-  // Show loading only when actively fetching and we have no content to display
-  // Once we have any content (books or classics), we can show it while loading more
-  if (isLoading && books.length === 0 && !hasFetched) {
+  // Show loading only during initial fetch (before hasFetched becomes true)
+  // This is now bulletproof: hasFetched is set immediately when fetch starts
+  if (isLoading && !hasFetched) {
     return (
       <div className="flex items-center justify-center py-32">
         <div className="flex flex-col items-center gap-6">
