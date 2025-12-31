@@ -51,6 +51,7 @@ export function EpubReader({ book }: EpubReaderProps) {
   const [sections, setSections] = useState<Section[]>([]);
   const [currentSection, setCurrentSection] = useState<string>('');
   const [progress, setProgress] = useState(0);
+  const isRestoringProgress = useRef(false); // Flag to prevent saving while restoring
 
   // Width control state (from store for persistence)
   const [isDragging, setIsDragging] = useState(false);
@@ -89,9 +90,20 @@ export function EpubReader({ book }: EpubReaderProps) {
   // Wait for hydration to ensure persisted settings are loaded
   const hasHydrated = useReaderSettingsHydrated();
 
-  const isCurrentLocationBookmarked = bookmarks.some(
-    (b) => b.location === currentSection
-  );
+  // Check if current scroll position is near a bookmark
+  const isCurrentLocationBookmarked = bookmarks.some((b) => {
+    if (!b.location) return false;
+    const parts = b.location.split(':');
+    if (parts[0] !== currentSection) return false;
+    // Check if within 5% of current scroll
+    const scrollTop = typeof window !== 'undefined' ? window.scrollY : 0;
+    const docHeight = typeof window !== 'undefined'
+      ? document.documentElement.scrollHeight - window.innerHeight
+      : 1;
+    const bookmarkScrollY = parts[1] ? parseInt(parts[1], 10) : 0;
+    const tolerance = docHeight * 0.05;
+    return Math.abs(bookmarkScrollY - scrollTop) < tolerance;
+  });
 
   // Track reading session for streak
   useEffect(() => {
@@ -393,14 +405,21 @@ export function EpubReader({ book }: EpubReaderProps) {
     };
   }, [isDragging, dragSide, updateSettings, syncSettings]);
 
-  // Track scroll position
+  // Track scroll position and save progress
   useEffect(() => {
     if (sections.length === 0) return;
 
+    // Debounce progress saving to reduce writes
+    let saveTimeout: NodeJS.Timeout | null = null;
+
     const handleScroll = () => {
+      // Don't save progress while we're restoring it
+      if (isRestoringProgress.current) return;
+
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
       setProgress(scrollPercent);
 
       // Find current section
@@ -414,12 +433,23 @@ export function EpubReader({ book }: EpubReaderProps) {
 
       if (currentId !== currentSection) {
         setCurrentSection(currentId);
-        updateProgress(book.id, currentId, 0, scrollPercent);
       }
+
+      // Debounce the save - save after 500ms of no scrolling
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        // Create a composite location that includes scroll position
+        // Format: "sectionId:scrollY:docHeight" so we can restore precisely
+        const location = `${currentId}:${Math.round(scrollTop)}:${Math.round(docHeight)}`;
+        updateProgress(book.id, location, Math.round(scrollTop), scrollPercent);
+      }, 500);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (saveTimeout) clearTimeout(saveTimeout);
+    };
   }, [sections, currentSection, book.id, updateProgress]);
 
   // Initialize reader with foliate-js
@@ -547,14 +577,50 @@ export function EpubReader({ book }: EpubReaderProps) {
 
         setIsLoading(false);
 
-        // Scroll to saved position and update currentSection
+        // Restore scroll position precisely
         if (savedProgress?.current_location) {
-          setCurrentSection(savedProgress.current_location);
+          isRestoringProgress.current = true;
+
+          // Parse the composite location format: "sectionId:scrollY:docHeight"
+          const parts = savedProgress.current_location.split(':');
+          const sectionId = parts[0];
+          const savedScrollY = parts[1] ? parseInt(parts[1], 10) : null;
+          const savedDocHeight = parts[2] ? parseInt(parts[2], 10) : null;
+
+          setCurrentSection(sectionId);
+
           setTimeout(() => {
-            const el = sectionRefs.current.get(savedProgress.current_location);
-            if (el) {
-              el.scrollIntoView({ behavior: 'auto', block: 'start' });
+            // Try to restore exact scroll position first
+            if (savedScrollY !== null && savedDocHeight !== null) {
+              // Calculate proportional position based on saved doc height vs current
+              const currentDocHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+              if (currentDocHeight > 0 && savedDocHeight > 0) {
+                // Use saved percentage to calculate new scroll position
+                const savedPercent = savedScrollY / savedDocHeight;
+                const newScrollY = savedPercent * currentDocHeight;
+                window.scrollTo({ top: newScrollY, behavior: 'auto' });
+              } else {
+                // Fallback: use saved scroll position directly
+                window.scrollTo({ top: savedScrollY, behavior: 'auto' });
+              }
+            } else if (savedProgress.progress_percentage) {
+              // Fallback: use percentage if no scroll position saved
+              const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+              const scrollY = (savedProgress.progress_percentage / 100) * docHeight;
+              window.scrollTo({ top: scrollY, behavior: 'auto' });
+            } else {
+              // Last fallback: scroll to section
+              const el = sectionRefs.current.get(sectionId);
+              if (el) {
+                el.scrollIntoView({ behavior: 'auto', block: 'start' });
+              }
             }
+
+            // Allow saving after a short delay
+            setTimeout(() => {
+              isRestoringProgress.current = false;
+            }, 1000);
           }, READER_CONSTANTS.SCROLL_TIMEOUT);
         }
       } catch (err) {
@@ -577,15 +643,39 @@ export function EpubReader({ book }: EpubReaderProps) {
     // eslint-disable-next-line react-hooks-exhaustive-deps
   }, [signedFileUrl, isUrlLoading, urlError, book.id, book.title]);
 
-  // Navigation
+  // Navigation - handles both section IDs and precise locations
   const handleNavigate = useCallback((href: string) => {
-    const el = sectionRefs.current.get(href);
+    // Check if this is a precise location format: "sectionId:scrollY:docHeight"
+    const parts = href.split(':');
+    if (parts.length >= 2) {
+      const savedScrollY = parseInt(parts[1], 10);
+      const savedDocHeight = parts[2] ? parseInt(parts[2], 10) : null;
+
+      if (!isNaN(savedScrollY)) {
+        // Navigate to precise scroll position
+        if (savedDocHeight) {
+          const currentDocHeight = document.documentElement.scrollHeight - window.innerHeight;
+          if (currentDocHeight > 0 && savedDocHeight > 0) {
+            const savedPercent = savedScrollY / savedDocHeight;
+            const newScrollY = savedPercent * currentDocHeight;
+            window.scrollTo({ top: newScrollY, behavior: 'smooth' });
+            return;
+          }
+        }
+        window.scrollTo({ top: savedScrollY, behavior: 'smooth' });
+        return;
+      }
+    }
+
+    // Fallback to section-based navigation
+    const sectionId = parts[0] || href;
+    const el = sectionRefs.current.get(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       // Try partial match
       for (const [id, element] of sectionRefs.current.entries()) {
-        if (id.includes(href) || href.includes(id)) {
+        if (id.includes(sectionId) || sectionId.includes(id)) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
           break;
         }
@@ -594,13 +684,47 @@ export function EpubReader({ book }: EpubReaderProps) {
   }, []);
 
   const handleBookmarkToggle = useCallback(() => {
-    const existing = bookmarks.find((b) => b.location === currentSection);
+    // Create a precise location with scroll position
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+    // Location format: "sectionId:scrollY:docHeight"
+    const preciseLocation = `${currentSection}:${Math.round(scrollTop)}:${Math.round(docHeight)}`;
+
+    // Find existing bookmark at this approximate location (within 5% of page)
+    const existing = bookmarks.find((b) => {
+      if (!b.location) return false;
+      const parts = b.location.split(':');
+      if (parts[0] !== currentSection) return false;
+      // Check if bookmark is within ~5% of current scroll position
+      const bookmarkScrollY = parts[1] ? parseInt(parts[1], 10) : 0;
+      const tolerance = docHeight * 0.05;
+      return Math.abs(bookmarkScrollY - scrollTop) < tolerance;
+    });
+
     if (existing) {
       removeBookmark(existing.id);
     } else {
-      addBookmark(book.id, currentSection, 0, currentSection);
+      // Get the chapter title from TOC if available
+      let title = '';
+      const findChapterTitle = (items: TocItem[]): string | null => {
+        for (const item of items) {
+          if (currentSection.includes(item.id) || item.id.includes(currentSection)) {
+            return item.label;
+          }
+          if (item.subitems) {
+            const found = findChapterTitle(item.subitems);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      title = findChapterTitle(toc) || `Page ${scrollPercent}%`;
+
+      addBookmark(book.id, preciseLocation, scrollPercent, title);
     }
-  }, [bookmarks, currentSection, book.id, addBookmark, removeBookmark]);
+  }, [bookmarks, currentSection, toc, book.id, addBookmark, removeBookmark]);
 
   const setSectionRef = useCallback((id: string, el: HTMLDivElement | null) => {
     if (el) {

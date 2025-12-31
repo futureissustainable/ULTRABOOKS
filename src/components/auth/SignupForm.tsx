@@ -57,7 +57,7 @@ export function SignupForm() {
               <p className="font-ui fs-p-sm uppercase tracking-[0.15em] text-[var(--text-tertiary)] mb-1">
                 Almost done
               </p>
-              <h1 className="font-display text-[24px] uppercase leading-none">Check Email</h1>
+              <h1 className="font-display fs-h-sm uppercase leading-none">Check Email</h1>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@ export function SignupForm() {
         <div className="p-6">
           <div className="p-4 bg-[var(--bg-primary)] border border-[var(--border-primary)] mb-6">
             <div className="flex items-start gap-3">
-              <PixelIcon name="email" size={16} className="text-[var(--text-secondary)] flex-shrink-0 mt-0.5" />
+              <PixelIcon name="mail" size={16} className="text-[var(--text-secondary)] flex-shrink-0 mt-0.5" />
               <p className="font-ui fs-p-lg text-[var(--text-secondary)] leading-relaxed">
                 We&apos;ve sent you a confirmation email. Please check your inbox and click the
                 link to verify your account.
@@ -97,7 +97,7 @@ export function SignupForm() {
             <p className="font-ui fs-p-sm uppercase tracking-[0.15em] text-[var(--text-tertiary)] mb-1">
               Get started free
             </p>
-            <h1 className="font-display text-[24px] uppercase leading-none">Create Account</h1>
+            <h1 className="font-display fs-h-sm uppercase leading-none">Create Account</h1>
           </div>
         </div>
       </div>
