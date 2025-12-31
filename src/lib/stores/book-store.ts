@@ -210,6 +210,37 @@ export const useBookStore = create<BookState>((set, get) => ({
         return { book: null, error: 'Unsupported file type. Please upload EPUB, PDF, or MOBI files.' };
       }
 
+      // Extract title from filename (fallback)
+      let title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
+      let author: string | undefined;
+      let coverUrl: string | undefined;
+
+      // For EPUBs, try to extract metadata first (before upload) for duplicate check
+      if (fileType === 'epub') {
+        try {
+          const metadata = await extractEpubMetadata(file);
+          if (metadata.title) {
+            title = metadata.title;
+          }
+          if (metadata.author) {
+            author = metadata.author;
+          }
+        } catch (epubError) {
+          console.error('Error extracting EPUB metadata:', epubError);
+        }
+      }
+
+      // Check for duplicate by title (case-insensitive)
+      const existingBooks = get().books;
+      const normalizedTitle = title.toLowerCase().trim();
+      const duplicate = existingBooks.find(
+        (book) => book.title.toLowerCase().trim() === normalizedTitle
+      );
+      if (duplicate) {
+        set({ isUploading: false });
+        return { book: null, error: `"${title}" is already in your library` };
+      }
+
       // Upload file to storage with UUID path (unguessable)
       const fileId = generateFileId();
       const filePath = `${user.id}/${fileId}.${fileType}`;
@@ -222,26 +253,9 @@ export const useBookStore = create<BookState>((set, get) => ({
         return { book: null, error: uploadError.message };
       }
 
-      // Store just the path (not full URL) - signed URLs generated on demand
-
-      // Extract title from filename (fallback)
-      let title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
-      let author: string | undefined;
-      let coverUrl: string | undefined;
-
-      // For EPUBs, try to extract cover and metadata
+      // For EPUBs, extract and upload cover
       if (fileType === 'epub') {
         try {
-          // Extract metadata (title, author)
-          const metadata = await extractEpubMetadata(file);
-          if (metadata.title) {
-            title = metadata.title;
-          }
-          if (metadata.author) {
-            author = metadata.author;
-          }
-
-          // Extract and upload cover to public 'covers' bucket
           const coverBlob = await extractEpubCover(file);
           if (coverBlob) {
             const coverExt = coverBlob.type.split('/')[1] || 'jpg';
@@ -255,13 +269,11 @@ export const useBookStore = create<BookState>((set, get) => ({
               });
 
             if (!coverUploadError) {
-              // Store just the path - public URL constructed on demand
               coverUrl = coverPath;
             }
           }
         } catch (epubError) {
-          console.error('Error processing EPUB:', epubError);
-          // Continue without cover/metadata - not a critical error
+          console.error('Error extracting EPUB cover:', epubError);
         }
       }
 
@@ -273,7 +285,7 @@ export const useBookStore = create<BookState>((set, get) => ({
           title,
           author,
           cover_url: coverUrl,
-          file_url: filePath,  // Store path only, signed URL generated on demand
+          file_url: filePath,
           file_type: fileType,
           file_size: file.size,
         })
@@ -327,6 +339,14 @@ export const useBookStore = create<BookState>((set, get) => ({
         return { successful: [], failed: files.map(f => ({ file: f, error: quotaCheck.error || 'Upload limit reached' })) };
       }
 
+      // Get existing book titles for duplicate detection
+      const existingBooks = get().books;
+      const existingTitles = new Set(
+        existingBooks.map((book) => book.title.toLowerCase().trim())
+      );
+      // Track titles we're adding in this batch to avoid duplicates within the batch
+      const batchTitles = new Set<string>();
+
       // Process files sequentially to avoid overwhelming the server
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -352,6 +372,39 @@ export const useBookStore = create<BookState>((set, get) => ({
           continue;
         }
 
+        // Extract metadata first for duplicate check
+        let title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
+        let author: string | undefined;
+        let coverUrl: string | undefined;
+
+        if (fileType === 'epub') {
+          try {
+            const metadataPromise = Promise.race([
+              extractEpubMetadata(file),
+              new Promise<{ title?: string; author?: string }>((_, reject) =>
+                setTimeout(() => reject(new Error('Metadata extraction timeout')), 10000)
+              )
+            ]);
+
+            try {
+              const metadata = await metadataPromise;
+              if (metadata.title) title = metadata.title;
+              if (metadata.author) author = metadata.author;
+            } catch (metaErr) {
+              console.warn(`Metadata extraction failed for ${file.name}:`, metaErr);
+            }
+          } catch (epubError) {
+            console.warn(`EPUB metadata processing failed for ${file.name}:`, epubError);
+          }
+        }
+
+        // Check for duplicate
+        const normalizedTitle = title.toLowerCase().trim();
+        if (existingTitles.has(normalizedTitle) || batchTitles.has(normalizedTitle)) {
+          failed.push({ file, error: `"${title}" is already in your library` });
+          continue;
+        }
+
         try {
           // Upload file to storage
           const fileId = generateFileId();
@@ -365,57 +418,32 @@ export const useBookStore = create<BookState>((set, get) => ({
             continue;
           }
 
-          // Extract metadata
-          let title = file.name.replace(/\.(epub|pdf|mobi)$/i, '');
-          let author: string | undefined;
-          let coverUrl: string | undefined;
-
+          // Extract cover for EPUBs
           if (fileType === 'epub') {
             try {
-              // Add timeout to prevent hanging on problematic EPUBs
-              const metadataPromise = Promise.race([
-                extractEpubMetadata(file),
-                new Promise<{ title?: string; author?: string }>((_, reject) =>
-                  setTimeout(() => reject(new Error('Metadata extraction timeout')), 10000)
+              const coverPromise = Promise.race([
+                extractEpubCover(file),
+                new Promise<Blob | null>((resolve) =>
+                  setTimeout(() => resolve(null), 10000)
                 )
               ]);
 
-              try {
-                const metadata = await metadataPromise;
-                if (metadata.title) title = metadata.title;
-                if (metadata.author) author = metadata.author;
-              } catch (metaErr) {
-                console.warn(`Metadata extraction failed for ${file.name}:`, metaErr);
-              }
+              const coverBlob = await coverPromise;
+              if (coverBlob) {
+                const coverExt = coverBlob.type.split('/')[1] || 'jpg';
+                const coverId = generateFileId();
+                const coverPath = `${user.id}/${coverId}.${coverExt}`;
 
-              // Cover extraction with timeout
-              try {
-                const coverPromise = Promise.race([
-                  extractEpubCover(file),
-                  new Promise<Blob | null>((resolve) =>
-                    setTimeout(() => resolve(null), 10000)
-                  )
-                ]);
+                const { error: coverUploadError } = await supabase.storage
+                  .from('covers')
+                  .upload(coverPath, coverBlob, { contentType: coverBlob.type });
 
-                const coverBlob = await coverPromise;
-                if (coverBlob) {
-                  const coverExt = coverBlob.type.split('/')[1] || 'jpg';
-                  const coverId = generateFileId();
-                  const coverPath = `${user.id}/${coverId}.${coverExt}`;
-
-                  const { error: coverUploadError } = await supabase.storage
-                    .from('covers')
-                    .upload(coverPath, coverBlob, { contentType: coverBlob.type });
-
-                  if (!coverUploadError) {
-                    coverUrl = coverPath;
-                  }
+                if (!coverUploadError) {
+                  coverUrl = coverPath;
                 }
-              } catch (coverErr) {
-                console.warn(`Cover extraction failed for ${file.name}:`, coverErr);
               }
-            } catch (epubError) {
-              console.warn(`EPUB processing failed for ${file.name}:`, epubError);
+            } catch (coverErr) {
+              console.warn(`Cover extraction failed for ${file.name}:`, coverErr);
             }
           }
 
@@ -439,6 +467,8 @@ export const useBookStore = create<BookState>((set, get) => ({
             continue;
           }
 
+          // Track this title to avoid duplicates within the batch
+          batchTitles.add(normalizedTitle);
           successful.push(book);
         } catch (err) {
           failed.push({ file, error: 'Upload failed' });
