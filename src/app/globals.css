@@ -483,8 +483,8 @@
 /* The entire grid is tilted in 3D like Netflix */
 .hero-books-grid {
   position: absolute;
-  /* Mobile: use viewport height and center properly */
-  top: 50%;
+  /* Mobile: shift up to fill top gap (3D tilt pushes top away) */
+  top: 35%;
   left: -40%;
   right: -40%;
   height: 250vh;
