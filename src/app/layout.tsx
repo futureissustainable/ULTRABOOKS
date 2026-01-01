@@ -13,12 +13,6 @@ const mondwest = localFont({
   display: 'swap',
 });
 
-const neueBit = localFont({
-  src: '../../public/fonts/PPNeueBit-Bold.otf',
-  variable: '--font-neuebit',
-  display: 'swap',
-});
-
 const albertSans = localFont({
   src: '../../public/fonts/AlbertSans-VariableFont_wght.ttf',
   variable: '--font-albert',
@@ -64,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${mondwest.variable} ${neueBit.variable} ${albertSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${mondwest.variable} ${albertSans.variable}`}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
