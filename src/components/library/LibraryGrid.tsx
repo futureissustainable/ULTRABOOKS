@@ -5,12 +5,10 @@ import { useBookStore } from '@/lib/stores/book-store';
 import { BookCard } from './BookCard';
 import { BookUpload } from './BookUpload';
 import { BookRow } from './BookRow';
-import { ShareCollectionModal } from './ShareCollectionModal';
 import { Button, Spinner } from '@/components/ui';
 import { PixelIcon } from '@/components/icons/PixelIcon';
 import { classicBooks } from '@/lib/classics-data';
 import { clsx } from 'clsx';
-import type { Book } from '@/lib/supabase/types';
 
 export function LibraryGrid() {
   const { books, fetchBooks, isLoading, hasFetched, error, uploadBook, uploadBooks, isUploading, uploadProgress, fetchQuota } = useBookStore();
@@ -20,48 +18,7 @@ export function LibraryGrid() {
   const [dragError, setDragError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'netflix' | 'grid'>('netflix');
 
-  // Selection mode state
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
-  const [showShareCollectionModal, setShowShareCollectionModal] = useState(false);
-
-  const handleToggleSelect = useCallback((book: Book) => {
-    setSelectedBooks(prev => {
-      const next = new Set(prev);
-      if (next.has(book.id)) {
-        next.delete(book.id);
-      } else {
-        next.add(book.id);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleSelectAll = useCallback(() => {
-    if (selectedBooks.size === books.length) {
-      setSelectedBooks(new Set());
-    } else {
-      setSelectedBooks(new Set(books.map(b => b.id)));
-    }
-  }, [books, selectedBooks.size]);
-
-  const handleExitSelectionMode = useCallback(() => {
-    setIsSelectionMode(false);
-    setSelectedBooks(new Set());
-  }, []);
-
-  const handleShareSelected = useCallback(() => {
-    if (selectedBooks.size > 0) {
-      setShowShareCollectionModal(true);
-    }
-  }, [selectedBooks.size]);
-
-  const getSelectedBooksData = useCallback(() => {
-    return books.filter(b => selectedBooks.has(b.id));
-  }, [books, selectedBooks]);
-
   useEffect(() => {
-    // Fetch books and quota on mount if we haven't fetched yet
     if (!hasFetched) {
       fetchBooks();
       fetchQuota();
@@ -74,12 +31,16 @@ export function LibraryGrid() {
       book.author?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Library-wide drag and drop handlers
+  // Sort books by created_at descending (newest first)
+  const sortedBooks = [...filteredBooks].sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   const validateFile = (file: File): boolean => {
     const acceptedTypes = ['.epub', '.pdf', '.mobi'];
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!acceptedTypes.includes(extension)) {
-      setDragError(`Invalid file type. Accepted formats: ${acceptedTypes.join(', ')}`);
+      setDragError(`Invalid file type. Accepted: ${acceptedTypes.join(', ')}`);
       return false;
     }
     if (file.size > 100 * 1024 * 1024) {
@@ -113,9 +74,7 @@ export function LibraryGrid() {
     const files = Array.from(e.dataTransfer.files);
     const validFiles = files.filter(file => validateFile(file));
 
-    if (validFiles.length === 0) {
-      return;
-    }
+    if (validFiles.length === 0) return;
 
     if (validFiles.length === 1) {
       const result = await uploadBook(validFiles[0]);
@@ -126,15 +85,12 @@ export function LibraryGrid() {
     } else {
       const result = await uploadBooks(validFiles);
       if (result.failed.length > 0) {
-        const message = `${result.successful.length} uploaded, ${result.failed.length} failed`;
-        setDragError(message);
+        setDragError(`${result.successful.length} uploaded, ${result.failed.length} failed`);
         setTimeout(() => setDragError(null), 5000);
       }
     }
   }, [uploadBook, uploadBooks]);
 
-  // Show loading only during initial fetch (before hasFetched becomes true)
-  // This is now bulletproof: hasFetched is set immediately when fetch starts
   if (isLoading && !hasFetched) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -155,7 +111,7 @@ export function LibraryGrid() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Upload Progress Indicator */}
+      {/* Upload Progress */}
       {isUploading && (
         <div className="fixed bottom-4 right-4 z-50 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)] min-w-[200px]">
           <div className="flex items-center gap-3 mb-2">
@@ -182,7 +138,7 @@ export function LibraryGrid() {
         </div>
       )}
 
-      {/* Drag Error Toast */}
+      {/* Error Toast */}
       {dragError && (
         <div className="fixed bottom-4 right-4 z-50 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--text-primary)]">
           <p className="font-ui fs-p-sm uppercase tracking-[0.02em] text-[var(--text-primary)]">
@@ -191,40 +147,9 @@ export function LibraryGrid() {
         </div>
       )}
 
-      {/* Selection Mode Bar */}
-      {isSelectionMode && (
-        <div className="flex items-center justify-between gap-3 mb-4 p-3 border border-[var(--text-primary)] bg-[var(--bg-secondary)]">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSelectAll}
-              className="font-ui fs-p-sm uppercase tracking-[0.02em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-            >
-              {selectedBooks.size === books.length ? 'Deselect All' : 'Select All'}
-            </button>
-            <span className="font-mono fs-p-sm text-[var(--text-tertiary)]">
-              {selectedBooks.size} selected
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleShareSelected}
-              disabled={selectedBooks.size === 0}
-            >
-              <PixelIcon name="share" size={12} className="mr-2" />
-              Share Selected
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleExitSelectionMode}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-1 mb-6 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-        <div className="flex-1 relative border-b sm:border-b-0 sm:border-r border-[var(--border-primary)]">
+      {/* Toolbar - Simplified */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className="flex-1 relative">
           <PixelIcon
             name="search"
             size={14}
@@ -232,21 +157,20 @@ export function LibraryGrid() {
           />
           <input
             type="text"
-            placeholder="SEARCH BOOKS..."
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 font-ui fs-p-sm uppercase tracking-[0.02em] bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:bg-[var(--bg-tertiary)] transition-all duration-100 border-0 input-focus"
+            className="w-full pl-10 pr-4 py-2.5 font-ui fs-p-sm bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--text-tertiary)] transition-all duration-100 border border-[var(--border-primary)]"
           />
         </div>
-        {/* View Toggle */}
-        <div className="flex border-b sm:border-b-0 sm:border-r border-[var(--border-primary)]">
+        <div className="flex">
           <button
             onClick={() => setViewMode('netflix')}
             className={clsx(
-              'px-4 py-3 flex items-center justify-center transition-all duration-100 focus-ring',
+              'p-2.5 transition-all duration-100 border border-[var(--border-primary)]',
               viewMode === 'netflix'
                 ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                : 'hover:bg-[var(--bg-tertiary)]'
+                : 'bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]'
             )}
             aria-label="Row view"
           >
@@ -255,32 +179,22 @@ export function LibraryGrid() {
           <button
             onClick={() => setViewMode('grid')}
             className={clsx(
-              'px-4 py-3 flex items-center justify-center transition-all duration-100 border-l border-[var(--border-primary)] focus-ring',
+              'p-2.5 transition-all duration-100 border border-l-0 border-[var(--border-primary)]',
               viewMode === 'grid'
                 ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                : 'hover:bg-[var(--bg-tertiary)]'
+                : 'bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]'
             )}
             aria-label="Grid view"
           >
             <PixelIcon name="layout" size={14} />
           </button>
         </div>
-        {/* Select Button */}
-        {books.length > 0 && !isSelectionMode && (
-          <button
-            onClick={() => setIsSelectionMode(true)}
-            className="px-4 py-3 flex items-center justify-center gap-2 font-ui fs-p-sm uppercase tracking-[0.02em] border-b sm:border-b-0 sm:border-r border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 focus-ring"
-          >
-            <PixelIcon name="check" size={14} />
-            Select
-          </button>
-        )}
         <button
           onClick={() => setIsUploadOpen(true)}
-          className="px-4 py-3 flex items-center justify-center gap-2 font-ui fs-p-sm uppercase tracking-[0.02em] hover:bg-[var(--bg-tertiary)] transition-all duration-100 focus-ring"
+          className="p-2.5 bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 border border-[var(--border-primary)]"
+          aria-label="Upload book"
         >
           <PixelIcon name="upload" size={14} />
-          Upload
         </button>
       </div>
 
@@ -291,7 +205,7 @@ export function LibraryGrid() {
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Content */}
       {books.length === 0 ? (
         <>
           <div className="text-center py-16 md:py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)] mb-8">
@@ -308,7 +222,6 @@ export function LibraryGrid() {
             </Button>
           </div>
 
-          {/* Show classics even when library is empty */}
           <BookRow
             title="Popular Classics"
             subtitle="Free public domain books"
@@ -316,11 +229,10 @@ export function LibraryGrid() {
           />
         </>
       ) : searchQuery ? (
-        // Search Results
         <>
           <div className="mb-4">
-            <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-              {filteredBooks.length} {filteredBooks.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
+            <p className="font-ui fs-p-sm text-[var(--text-secondary)]">
+              {filteredBooks.length} {filteredBooks.length === 1 ? 'result' : 'results'} for "{searchQuery}"
             </p>
           </div>
 
@@ -330,36 +242,26 @@ export function LibraryGrid() {
                 <PixelIcon name="search" size={32} className="text-[var(--text-tertiary)]" />
               </div>
               <h2 className="font-display fs-h-sm uppercase mb-3">No Results</h2>
-              <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+              <p className="font-ui fs-p-sm text-[var(--text-secondary)]">
                 No books match your search
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-children">
-              {filteredBooks.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={book}
-                  isSelectionMode={isSelectionMode}
-                  isSelected={selectedBooks.has(book.id)}
-                  onSelect={handleToggleSelect}
-                />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {sortedBooks.map((book) => (
+                <BookCard key={book.id} book={book} />
               ))}
             </div>
           )}
         </>
       ) : viewMode === 'netflix' ? (
-        // Netflix-style row view
         <div className="space-y-10">
-          {/* Your Books - show first */}
           <BookRow
-            title="Your Library"
-            subtitle={`${books.length} ${books.length === 1 ? 'book' : 'books'}`}
-            books={filteredBooks}
+            title="Latest Books"
+            books={sortedBooks}
             onViewAll={() => setViewMode('grid')}
           />
 
-          {/* Popular Classics */}
           <BookRow
             title="Popular Classics"
             subtitle="Free public domain books"
@@ -367,40 +269,22 @@ export function LibraryGrid() {
           />
         </div>
       ) : (
-        // Grid view
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
+            <h2 className="font-ui fs-p-sm text-[var(--text-secondary)]">
               All Books ({books.length})
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-children">
-            {filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isSelectionMode={isSelectionMode}
-                isSelected={selectedBooks.has(book.id)}
-                onSelect={handleToggleSelect}
-              />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {sortedBooks.map((book) => (
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         </>
       )}
 
-      {/* Upload Modal */}
       <BookUpload isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
-
-      {/* Share Collection Modal */}
-      <ShareCollectionModal
-        books={getSelectedBooksData()}
-        isOpen={showShareCollectionModal}
-        onClose={() => {
-          setShowShareCollectionModal(false);
-          handleExitSelectionMode();
-        }}
-      />
     </div>
   );
 }

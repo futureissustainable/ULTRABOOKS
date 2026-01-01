@@ -434,8 +434,6 @@ export function PdfReader({ book }: PdfReaderProps) {
     <div className="min-h-screen" style={{ background: getThemeBackground() }}>
       <ReaderToolbar
         title={book.title}
-        currentPage={currentPage}
-        totalPages={totalPages}
         progress={progress}
         onBookmark={handleBookmarkToggle}
         isBookmarked={isCurrentPageBookmarked}

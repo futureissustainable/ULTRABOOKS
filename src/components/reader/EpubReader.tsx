@@ -759,8 +759,6 @@ export function EpubReader({ book }: EpubReaderProps) {
     >
       <ReaderToolbar
         title={book.title}
-        currentPage={Math.round(progress)}
-        totalPages={100}
         progress={progress}
         onBookmark={handleBookmarkToggle}
         isBookmarked={isCurrentLocationBookmarked}
