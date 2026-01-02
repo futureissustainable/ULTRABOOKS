@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useBookStore } from '@/lib/stores/book-store';
+import { useStreakStore } from '@/lib/stores/streak-store';
 import { BookCard } from './BookCard';
 import { BookUpload } from './BookUpload';
 import { BookRow } from './BookRow';
 import { ShareCollectionModal } from './ShareCollectionModal';
+import { StreakModal, StreakGoalModal } from '@/components/streak';
 import { Button, Spinner } from '@/components/ui';
 import { PixelIcon } from '@/components/icons/PixelIcon';
 import { classicBooks } from '@/lib/classics-data';
@@ -14,6 +16,7 @@ import type { Book } from '@/lib/supabase/types';
 
 export function LibraryGrid() {
   const { books, fetchBooks, isLoading, hasFetched, error, uploadBook, uploadBooks, isUploading, uploadProgress, fetchQuota } = useBookStore();
+  const { currentStreak, todayProgress, checkAndUpdateStreak, setStreakModalOpen } = useStreakStore();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -30,7 +33,8 @@ export function LibraryGrid() {
       fetchBooks();
       fetchQuota();
     }
-  }, [fetchBooks, fetchQuota, hasFetched]);
+    checkAndUpdateStreak();
+  }, [fetchBooks, fetchQuota, hasFetched, checkAndUpdateStreak]);
 
   const filteredBooks = books.filter(
     (book) =>
@@ -140,6 +144,8 @@ export function LibraryGrid() {
     handleExitSelection();
   }, [handleExitSelection]);
 
+  const isGoalMet = todayProgress.goalMet;
+
   if (isLoading && !hasFetched) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -216,11 +222,43 @@ export function LibraryGrid() {
       ) : viewMode === 'home' ? (
         // Home view - Netflix style rows
         <div className="space-y-10">
-          <BookRow
-            title="Latest Books"
-            books={sortedBooks}
-            onViewAll={handleViewAll}
-          />
+          {/* Latest Books with View All and Streak */}
+          <div>
+            {/* Header row with streak and view all */}
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display fs-h-sm md:fs-h-lg uppercase tracking-tight">
+                Latest Books
+              </h2>
+
+              <div className="flex items-center gap-3">
+                {/* Streak counter - simplified */}
+                <button
+                  onClick={() => setStreakModalOpen(true)}
+                  className={clsx(
+                    'flex items-center gap-1.5 px-2.5 py-1.5 transition-colors',
+                    isGoalMet
+                      ? 'text-[var(--text-primary)]'
+                      : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+                  )}
+                >
+                  <PixelIcon name="fire" size={14} />
+                  <span className="font-mono fs-p-sm">{currentStreak}</span>
+                </button>
+
+                {/* View All */}
+                <button
+                  onClick={handleViewAll}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <span className="font-ui fs-p-sm">View All</span>
+                  <PixelIcon name="chevron-right" size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Books row */}
+            <BookRow books={sortedBooks} title="" />
+          </div>
 
           <BookRow
             title="Popular Classics"
@@ -341,6 +379,10 @@ export function LibraryGrid() {
           handleExitSelection();
         }}
       />
+
+      {/* Streak Modals */}
+      <StreakModal />
+      <StreakGoalModal />
     </div>
   );
 }

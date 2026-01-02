@@ -76,55 +76,57 @@ export function BookRow({
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="font-display fs-h-sm md:fs-h-lg uppercase tracking-tight">
-            {title}
-          </h2>
-          {subtitle && (
-            <p className="font-ui fs-p-sm text-[var(--text-tertiary)] mt-0.5">
-              {subtitle}
-            </p>
-          )}
-        </div>
+      {/* Header - only show if title exists */}
+      {title && (
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="font-display fs-h-sm md:fs-h-lg uppercase tracking-tight">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="font-ui fs-p-sm text-[var(--text-tertiary)] mt-0.5">
+                {subtitle}
+              </p>
+            )}
+          </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-1">
-          {/* View All Button */}
-          {onViewAll && (
-            <button
-              onClick={onViewAll}
-              className="px-3 py-2 font-ui fs-p-sm uppercase tracking-wide text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-1.5 border border-transparent hover:border-[var(--border-primary)]"
-            >
-              View All
-              <PixelIcon name="chevron-right" size={12} />
-            </button>
-          )}
+          {/* Controls */}
+          <div className="flex items-center gap-1">
+            {/* View All Button */}
+            {onViewAll && (
+              <button
+                onClick={onViewAll}
+                className="px-3 py-2 font-ui fs-p-sm uppercase tracking-wide text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-1.5 border border-transparent hover:border-[var(--border-primary)]"
+              >
+                View All
+                <PixelIcon name="chevron-right" size={12} />
+              </button>
+            )}
 
-          {/* Scroll Buttons */}
-          {hasBooks && (
-            <div className="flex gap-1">
-              <button
-                onClick={() => scroll('left')}
-                disabled={!canScrollLeft}
-                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
-                aria-label="Scroll left"
-              >
-                <PixelIcon name="chevron-left" size={14} />
-              </button>
-              <button
-                onClick={() => scroll('right')}
-                disabled={!canScrollRight}
-                className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
-                aria-label="Scroll right"
-              >
-                <PixelIcon name="chevron-right" size={14} />
-              </button>
-            </div>
-          )}
+            {/* Scroll Buttons */}
+            {hasBooks && (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => scroll('left')}
+                  disabled={!canScrollLeft}
+                  className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
+                  aria-label="Scroll left"
+                >
+                  <PixelIcon name="chevron-left" size={14} />
+                </button>
+                <button
+                  onClick={() => scroll('right')}
+                  disabled={!canScrollRight}
+                  className="w-9 h-9 flex items-center justify-center border border-[var(--border-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] hover:border-[var(--text-primary)] transition-colors disabled:opacity-30 disabled:hover:bg-[var(--bg-secondary)] disabled:hover:text-[var(--text-primary)] disabled:hover:border-[var(--border-primary)]"
+                  aria-label="Scroll right"
+                >
+                  <PixelIcon name="chevron-right" size={14} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Books Row */}
       {hasBooks ? (
