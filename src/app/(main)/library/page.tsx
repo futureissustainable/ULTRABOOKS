@@ -10,7 +10,7 @@ export default function LibraryPage() {
       <Header />
 
       <main className="flex-1">
-        <div className="container-page py-8">
+        <div className="container-page pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32">
           <LibraryGrid />
         </div>
       </main>
