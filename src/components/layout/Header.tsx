@@ -77,7 +77,7 @@ export function Header({ variant = 'app' }: HeaderProps) {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+                className="w-11 h-11 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
                 aria-label="Menu"
               >
                 <PixelIcon name="menu" size={20} />
@@ -100,7 +100,7 @@ export function Header({ variant = 'app' }: HeaderProps) {
             </span>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="w-10 h-10 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+              className="w-11 h-11 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
               aria-label="Close menu"
             >
               <PixelIcon name="close" size={18} />
@@ -175,7 +175,7 @@ export function Header({ variant = 'app' }: HeaderProps) {
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="w-10 h-10 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+              className="w-11 h-11 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
               aria-label="Toggle theme"
             >
               <PixelIcon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
@@ -197,7 +197,7 @@ export function Header({ variant = 'app' }: HeaderProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="md:hidden w-10 h-10 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+            className="md:hidden w-11 h-11 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
             aria-label="Open menu"
           >
             <PixelIcon name="menu" size={20} />
@@ -219,7 +219,7 @@ export function Header({ variant = 'app' }: HeaderProps) {
           </span>
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="w-10 h-10 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+            className="w-11 h-11 flex items-center justify-center rounded-[5px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
             aria-label="Close menu"
           >
             <PixelIcon name="close" size={18} />
