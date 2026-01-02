@@ -1,44 +1,149 @@
 'use client';
 
+import Link from 'next/link';
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { PixelIcon } from '@/components/icons/PixelIcon';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { user } = useAuthStore();
 
   return (
     <footer className="border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-      <div className="container-page py-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[var(--text-primary)] flex items-center justify-center">
-              <PixelIcon name="book" size={12} className="text-[var(--bg-primary)]" />
+      <div className="container-page py-8 md:py-10">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          {/* Brand Column */}
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 bg-[var(--text-primary)] flex items-center justify-center">
+                <PixelIcon name="book" size={14} className="text-[var(--bg-primary)]" />
+              </div>
+              <span className="font-display fs-h-sm uppercase tracking-tight">
+                MEMOROS
+              </span>
             </div>
-            <span className="font-display fs-p-lg uppercase tracking-tight">
-              MEMOROS
-            </span>
-            <span className="hidden sm:inline text-[var(--border-primary)]">•</span>
-            <span className="hidden sm:inline font-ui fs-p-sm text-[var(--text-tertiary)] uppercase tracking-[0.1em]">
-              Read Anywhere
-            </span>
+            <p className="font-ui fs-p-sm text-[var(--text-secondary)] leading-relaxed max-w-[200px]">
+              Your personal reading companion. Upload once, read everywhere.
+            </p>
           </div>
 
-          {/* Formats & Copyright */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-ui fs-p-sm uppercase tracking-[0.1em] text-[var(--text-tertiary)] mb-3">
+              Product
+            </h4>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href={user ? '/library' : '/signup'}
+                  className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  {user ? 'Library' : 'Get Started'}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/clubs"
+                  className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Book Clubs
+                </Link>
+              </li>
+              <li>
+                <span className="font-ui fs-p-sm text-[var(--text-tertiary)] flex items-center gap-1">
+                  Mobile App
+                  <span className="text-[10px] px-1 py-0.5 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] uppercase">Soon</span>
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 className="font-ui fs-p-sm uppercase tracking-[0.1em] text-[var(--text-tertiary)] mb-3">
+              Support
+            </h4>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/help"
+                  className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Help Center
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:hello@memoros.app"
+                  className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Contact
+                </a>
+              </li>
+              <li>
+                <Link
+                  href="/keyboard-shortcuts"
+                  className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1"
+                >
+                  <PixelIcon name="keyboard" size={12} />
+                  Shortcuts
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Formats */}
+          <div>
+            <h4 className="font-ui fs-p-sm uppercase tracking-[0.1em] text-[var(--text-tertiary)] mb-3">
+              Formats
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
               {['EPUB', 'PDF', 'MOBI'].map((format) => (
                 <span
                   key={format}
-                  className="font-mono fs-p-sm px-2 py-1 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-colors cursor-default"
+                  className="font-mono text-[11px] px-2 py-1 bg-[var(--bg-tertiary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
                 >
                   {format}
                 </span>
               ))}
             </div>
-            <span className="hidden md:inline text-[var(--border-primary)]">•</span>
-            <span className="hidden md:inline font-mono fs-p-sm text-[var(--text-muted)]">
-              © {currentYear}
-            </span>
+            <p className="font-ui fs-p-sm text-[var(--text-tertiary)] mt-3">
+              Free • No ads • Offline
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-6 border-t border-[var(--border-primary)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Copyright */}
+          <p className="font-mono fs-p-sm text-[var(--text-muted)] order-2 sm:order-1">
+            © {currentYear} Memoros
+          </p>
+
+          {/* Legal Links */}
+          <div className="flex items-center gap-4 order-1 sm:order-2">
+            <Link
+              href="/privacy"
+              className="font-ui fs-p-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms"
+              className="font-ui fs-p-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+            >
+              Terms
+            </Link>
+            <a
+              href="https://github.com/memoros"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+              aria-label="GitHub"
+            >
+              <PixelIcon name="github" size={16} />
+            </a>
           </div>
         </div>
       </div>

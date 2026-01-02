@@ -222,12 +222,12 @@ export function LibraryGrid() {
       ) : viewMode === 'home' ? (
         // Home view - Netflix style rows
         <div className="space-y-10">
-          {/* Latest Books with View All and Streak */}
+          {/* Library with View All and Streak */}
           <div>
             {/* Header row with streak and view all */}
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display fs-h-sm md:fs-h-lg uppercase tracking-tight">
-                Latest Books
+                Library
               </h2>
 
               <div className="flex items-center gap-3">
