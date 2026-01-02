@@ -221,7 +221,7 @@ export function LibraryGrid() {
         </>
       ) : viewMode === 'home' ? (
         // Home view - Netflix style rows
-        <div className="space-y-10">
+        <div className="space-y-16 sm:space-y-20">
           {/* Library with View All and Streak */}
           <div>
             {/* Header row with streak and view all */}
