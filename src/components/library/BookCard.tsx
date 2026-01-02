@@ -23,10 +23,9 @@ export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCa
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  // Get cover URL (handles both legacy URLs and new paths)
   const coverUrl = getCoverUrl(book.cover_url);
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     if (isSelectionMode && onSelect) {
       e.preventDefault();
       onSelect(book);
@@ -64,29 +63,24 @@ export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCa
         </div>
       )}
 
-      {/* Selection Checkbox */}
+      {/* Selection indicator */}
       {isSelectionMode && (
-        <div className="absolute top-2 left-2 z-10">
-          <div className={`w-6 h-6 border-2 flex items-center justify-center transition-all ${
+        <div className="absolute top-2 right-2">
+          <div className={`w-5 h-5 border-2 flex items-center justify-center transition-all ${
             isSelected
               ? 'bg-[var(--text-primary)] border-[var(--text-primary)]'
-              : 'bg-[var(--bg-primary)]/80 border-[var(--text-secondary)] hover:border-[var(--text-primary)]'
+              : 'bg-[var(--bg-primary)]/80 border-[var(--text-tertiary)]'
           }`}>
-            {isSelected && <PixelIcon name="check" size={14} className="text-[var(--bg-primary)]" />}
+            {isSelected && <PixelIcon name="check" size={12} className="text-[var(--bg-primary)]" />}
           </div>
         </div>
       )}
 
-      {/* Selection Overlay */}
-      {isSelectionMode && isSelected && (
-        <div className="absolute inset-0 bg-[var(--text-primary)]/10 pointer-events-none" />
-      )}
-
-      {/* Hover Overlay (only when not in selection mode) */}
+      {/* Hover Overlay - only when not in selection mode */}
       {!isSelectionMode && (
-        <div className="absolute inset-0 bg-[var(--bg-primary)]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex items-center justify-center backdrop-blur-sm">
-          <span className="font-ui fs-p-sm uppercase tracking-[0.05em] px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)] border border-[var(--text-primary)] btn-shine">
-            Read Now
+        <div className="absolute inset-0 bg-[var(--bg-primary)]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center backdrop-blur-sm">
+          <span className="font-ui fs-p-sm uppercase tracking-[0.05em] px-4 py-2 bg-[var(--text-primary)] text-[var(--bg-primary)]">
+            Read
           </span>
         </div>
       )}
@@ -95,10 +89,9 @@ export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCa
 
   return (
     <>
-      <Card variant="default" padding="none" className={`group relative overflow-hidden card-lift focus-ring ${isSelectionMode ? 'cursor-pointer' : ''} ${isSelected ? 'ring-2 ring-[var(--text-primary)]' : ''}`}>
-        {/* Cover or Placeholder */}
+      <Card variant="default" padding="none" className={`group relative overflow-hidden card-lift focus-ring ${isSelectionMode ? 'cursor-pointer' : ''}`}>
         {isSelectionMode ? (
-          <div onClick={handleCardClick}>
+          <div onClick={handleClick}>
             {coverContent}
           </div>
         ) : (
@@ -121,28 +114,30 @@ export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCa
             <span className="font-mono fs-p-sm text-[var(--text-tertiary)]">
               {formatFileSize(book.file_size)}
             </span>
-            <div className="flex items-center gap-1">
-              <DownloadForOffline
-                bookId={book.id}
-                fileUrl={book.file_url}
-                variant="icon"
-                className="!p-1.5 !min-w-0 !min-h-0 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 !border-transparent hover:!border-[var(--border-primary)] focus-ring"
-              />
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 border border-transparent hover:border-[var(--border-primary)] focus-ring"
-                aria-label="Share book"
-              >
-                <PixelIcon name="share" size={12} />
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 border border-transparent hover:border-[var(--border-primary)] focus-ring"
-                aria-label="Delete book"
-              >
-                <PixelIcon name="trash" size={12} />
-              </button>
-            </div>
+            {!isSelectionMode && (
+              <div className="flex items-center gap-0.5">
+                <DownloadForOffline
+                  bookId={book.id}
+                  fileUrl={book.file_url}
+                  variant="icon"
+                  className="!p-1.5 !min-w-0 !min-h-0 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                />
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                  aria-label="Share book"
+                >
+                  <PixelIcon name="share" size={12} />
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                  aria-label="Delete book"
+                >
+                  <PixelIcon name="trash" size={12} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </Card>
@@ -156,8 +151,7 @@ export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCa
       >
         <div className="space-y-6">
           <p className="font-ui fs-p-lg text-[var(--text-secondary)] leading-relaxed">
-            Are you sure you want to delete &ldquo;{book.title}&rdquo;? This will also remove all
-            bookmarks, highlights, and reading progress.
+            Delete "{book.title}"? This will remove all bookmarks, highlights, and reading progress.
           </p>
           <div className="flex gap-2">
             <Button

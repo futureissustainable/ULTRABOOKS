@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useBookStore } from '@/lib/stores/book-store';
+import { useStreakStore } from '@/lib/stores/streak-store';
 import { BookCard } from './BookCard';
 import { BookUpload } from './BookUpload';
 import { BookRow } from './BookRow';
 import { ShareCollectionModal } from './ShareCollectionModal';
+import { StreakModal, StreakGoalModal } from '@/components/streak';
 import { Button, Spinner } from '@/components/ui';
 import { PixelIcon } from '@/components/icons/PixelIcon';
 import { classicBooks } from '@/lib/classics-data';
@@ -14,16 +16,39 @@ import type { Book } from '@/lib/supabase/types';
 
 export function LibraryGrid() {
   const { books, fetchBooks, isLoading, hasFetched, error, uploadBook, uploadBooks, isUploading, uploadProgress, fetchQuota } = useBookStore();
+  const { currentStreak, todayProgress, checkAndUpdateStreak, setStreakModalOpen } = useStreakStore();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'netflix' | 'grid'>('netflix');
+  const [viewMode, setViewMode] = useState<'home' | 'all'>('home');
 
-  // Selection mode state
+  // Selection mode - only available in "all" view
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
-  const [showShareCollectionModal, setShowShareCollectionModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  useEffect(() => {
+    if (!hasFetched) {
+      fetchBooks();
+      fetchQuota();
+    }
+    checkAndUpdateStreak();
+  }, [fetchBooks, fetchQuota, hasFetched, checkAndUpdateStreak]);
+
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Sort: latest opened first (updated_at), then latest added (created_at)
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    const aOpened = new Date(a.updated_at).getTime();
+    const bOpened = new Date(b.updated_at).getTime();
+    if (bOpened !== aOpened) return bOpened - aOpened;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   const handleToggleSelect = useCallback((book: Book) => {
     setSelectedBooks(prev => {
@@ -38,48 +63,27 @@ export function LibraryGrid() {
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    if (selectedBooks.size === books.length) {
+    if (selectedBooks.size === filteredBooks.length) {
       setSelectedBooks(new Set());
     } else {
-      setSelectedBooks(new Set(books.map(b => b.id)));
+      setSelectedBooks(new Set(filteredBooks.map(b => b.id)));
     }
-  }, [books, selectedBooks.size]);
+  }, [filteredBooks, selectedBooks.size]);
 
-  const handleExitSelectionMode = useCallback(() => {
+  const handleExitSelection = useCallback(() => {
     setIsSelectionMode(false);
     setSelectedBooks(new Set());
   }, []);
-
-  const handleShareSelected = useCallback(() => {
-    if (selectedBooks.size > 0) {
-      setShowShareCollectionModal(true);
-    }
-  }, [selectedBooks.size]);
 
   const getSelectedBooksData = useCallback(() => {
     return books.filter(b => selectedBooks.has(b.id));
   }, [books, selectedBooks]);
 
-  useEffect(() => {
-    // Fetch books and quota on mount if we haven't fetched yet
-    if (!hasFetched) {
-      fetchBooks();
-      fetchQuota();
-    }
-  }, [fetchBooks, fetchQuota, hasFetched]);
-
-  const filteredBooks = books.filter(
-    (book) =>
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Library-wide drag and drop handlers
   const validateFile = (file: File): boolean => {
     const acceptedTypes = ['.epub', '.pdf', '.mobi'];
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!acceptedTypes.includes(extension)) {
-      setDragError(`Invalid file type. Accepted formats: ${acceptedTypes.join(', ')}`);
+      setDragError(`Invalid file type. Accepted: ${acceptedTypes.join(', ')}`);
       return false;
     }
     if (file.size > 100 * 1024 * 1024) {
@@ -113,9 +117,7 @@ export function LibraryGrid() {
     const files = Array.from(e.dataTransfer.files);
     const validFiles = files.filter(file => validateFile(file));
 
-    if (validFiles.length === 0) {
-      return;
-    }
+    if (validFiles.length === 0) return;
 
     if (validFiles.length === 1) {
       const result = await uploadBook(validFiles[0]);
@@ -126,24 +128,28 @@ export function LibraryGrid() {
     } else {
       const result = await uploadBooks(validFiles);
       if (result.failed.length > 0) {
-        const message = `${result.successful.length} uploaded, ${result.failed.length} failed`;
-        setDragError(message);
+        setDragError(`${result.successful.length} uploaded, ${result.failed.length} failed`);
         setTimeout(() => setDragError(null), 5000);
       }
     }
   }, [uploadBook, uploadBooks]);
 
-  // Show loading only during initial fetch (before hasFetched becomes true)
-  // This is now bulletproof: hasFetched is set immediately when fetch starts
+  const handleViewAll = useCallback(() => {
+    setViewMode('all');
+    handleExitSelection();
+  }, [handleExitSelection]);
+
+  const handleBackToHome = useCallback(() => {
+    setViewMode('home');
+    handleExitSelection();
+  }, [handleExitSelection]);
+
+  const isGoalMet = todayProgress.goalMet;
+
   if (isLoading && !hasFetched) {
     return (
       <div className="flex items-center justify-center py-32">
-        <div className="flex flex-col items-center gap-6">
-          <Spinner size="lg" />
-          <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-            Loading library...
-          </p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -155,143 +161,42 @@ export function LibraryGrid() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Upload Progress Indicator */}
+      {/* Upload Progress */}
       {isUploading && (
         <div className="fixed bottom-4 right-4 z-50 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)] min-w-[200px]">
           <div className="flex items-center gap-3 mb-2">
             <Spinner size="sm" />
-            <span className="font-ui fs-p-sm uppercase tracking-[0.02em]">
+            <span className="font-ui fs-p-sm">
               {uploadProgress
                 ? `Uploading ${uploadProgress.current}/${uploadProgress.total}`
                 : 'Uploading...'}
             </span>
           </div>
           {uploadProgress && (
-            <>
-              <div className="h-1 bg-[var(--bg-tertiary)] mb-1">
-                <div
-                  className="h-full bg-[var(--text-primary)] transition-all duration-300"
-                  style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
-                />
-              </div>
-              <p className="font-mono fs-p-sm text-[var(--text-tertiary)] truncate">
-                {uploadProgress.currentFile}
-              </p>
-            </>
+            <div className="h-1 bg-[var(--bg-tertiary)]">
+              <div
+                className="h-full bg-[var(--text-primary)] transition-all duration-300"
+                style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+              />
+            </div>
           )}
         </div>
       )}
 
-      {/* Drag Error Toast */}
+      {/* Error Toast */}
       {dragError && (
         <div className="fixed bottom-4 right-4 z-50 px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--text-primary)]">
-          <p className="font-ui fs-p-sm uppercase tracking-[0.02em] text-[var(--text-primary)]">
-            {dragError}
-          </p>
+          <p className="font-ui fs-p-sm">{dragError}</p>
         </div>
       )}
 
-      {/* Selection Mode Bar */}
-      {isSelectionMode && (
-        <div className="flex items-center justify-between gap-3 mb-4 p-3 border border-[var(--text-primary)] bg-[var(--bg-secondary)]">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSelectAll}
-              className="font-ui fs-p-sm uppercase tracking-[0.02em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-            >
-              {selectedBooks.size === books.length ? 'Deselect All' : 'Select All'}
-            </button>
-            <span className="font-mono fs-p-sm text-[var(--text-tertiary)]">
-              {selectedBooks.size} selected
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleShareSelected}
-              disabled={selectedBooks.size === 0}
-            >
-              <PixelIcon name="share" size={12} className="mr-2" />
-              Share Selected
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleExitSelectionMode}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-1 mb-6 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-        <div className="flex-1 relative border-b sm:border-b-0 sm:border-r border-[var(--border-primary)]">
-          <PixelIcon
-            name="search"
-            size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
-          />
-          <input
-            type="text"
-            placeholder="SEARCH BOOKS..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 font-ui fs-p-sm uppercase tracking-[0.02em] bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:bg-[var(--bg-tertiary)] transition-all duration-100 border-0 input-focus"
-          />
-        </div>
-        {/* View Toggle */}
-        <div className="flex border-b sm:border-b-0 sm:border-r border-[var(--border-primary)]">
-          <button
-            onClick={() => setViewMode('netflix')}
-            className={clsx(
-              'px-4 py-3 flex items-center justify-center transition-all duration-100 focus-ring',
-              viewMode === 'netflix'
-                ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                : 'hover:bg-[var(--bg-tertiary)]'
-            )}
-            aria-label="Row view"
-          >
-            <PixelIcon name="menu" size={14} />
-          </button>
-          <button
-            onClick={() => setViewMode('grid')}
-            className={clsx(
-              'px-4 py-3 flex items-center justify-center transition-all duration-100 border-l border-[var(--border-primary)] focus-ring',
-              viewMode === 'grid'
-                ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                : 'hover:bg-[var(--bg-tertiary)]'
-            )}
-            aria-label="Grid view"
-          >
-            <PixelIcon name="layout" size={14} />
-          </button>
-        </div>
-        {/* Select Button */}
-        {books.length > 0 && !isSelectionMode && (
-          <button
-            onClick={() => setIsSelectionMode(true)}
-            className="px-4 py-3 flex items-center justify-center gap-2 font-ui fs-p-sm uppercase tracking-[0.02em] border-b sm:border-b-0 sm:border-r border-[var(--border-primary)] hover:bg-[var(--bg-tertiary)] transition-all duration-100 focus-ring"
-          >
-            <PixelIcon name="check" size={14} />
-            Select
-          </button>
-        )}
-        <button
-          onClick={() => setIsUploadOpen(true)}
-          className="px-4 py-3 flex items-center justify-center gap-2 font-ui fs-p-sm uppercase tracking-[0.02em] hover:bg-[var(--bg-tertiary)] transition-all duration-100 focus-ring"
-        >
-          <PixelIcon name="upload" size={14} />
-          Upload
-        </button>
-      </div>
-
-      {/* Error State */}
       {error && (
         <div className="p-4 border border-[var(--border-primary)] bg-[var(--bg-secondary)] mb-6">
-          <p className="font-ui fs-p-sm uppercase tracking-[0.02em] text-[var(--text-primary)]">{error}</p>
+          <p className="font-ui fs-p-sm">{error}</p>
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Content */}
       {books.length === 0 ? (
         <>
           <div className="text-center py-16 md:py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)] mb-8">
@@ -299,44 +204,158 @@ export function LibraryGrid() {
               <PixelIcon name="library" size={32} className="text-[var(--text-tertiary)]" />
             </div>
             <h2 className="font-display fs-h-lg uppercase mb-3">No Books Yet</h2>
-            <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)] mb-8 max-w-sm mx-auto px-4">
-              Upload your first EPUB, PDF, or MOBI file. Or browse our collection of free classics below.
+            <p className="font-ui fs-p-sm text-[var(--text-secondary)] mb-8 max-w-sm mx-auto px-4">
+              Upload your first EPUB, PDF, or MOBI file
             </p>
             <Button onClick={() => setIsUploadOpen(true)}>
               <PixelIcon name="upload" size={12} className="mr-2" />
-              Upload First Book
+              Upload Book
             </Button>
           </div>
 
-          {/* Show classics even when library is empty */}
           <BookRow
             title="Popular Classics"
             subtitle="Free public domain books"
             classicBooks={classicBooks}
           />
         </>
-      ) : searchQuery ? (
-        // Search Results
-        <>
-          <div className="mb-4">
-            <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-              {filteredBooks.length} {filteredBooks.length === 1 ? 'result' : 'results'} for &ldquo;{searchQuery}&rdquo;
-            </p>
+      ) : viewMode === 'home' ? (
+        // Home view - Netflix style rows
+        <div className="space-y-10">
+          {/* Latest Books with View All and Streak */}
+          <div>
+            {/* Header row with streak and view all */}
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display fs-h-sm md:fs-h-lg uppercase tracking-tight">
+                Latest Books
+              </h2>
+
+              <div className="flex items-center gap-3">
+                {/* Streak counter - simplified */}
+                <button
+                  onClick={() => setStreakModalOpen(true)}
+                  className={clsx(
+                    'flex items-center gap-1.5 px-2.5 py-1.5 transition-colors',
+                    isGoalMet
+                      ? 'text-[var(--text-primary)]'
+                      : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
+                  )}
+                >
+                  <PixelIcon name="fire" size={14} />
+                  <span className="font-mono fs-p-sm">{currentStreak}</span>
+                </button>
+
+                {/* View All */}
+                <button
+                  onClick={handleViewAll}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <span className="font-ui fs-p-sm">View All</span>
+                  <PixelIcon name="chevron-right" size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Books row */}
+            <BookRow books={sortedBooks} title="" />
           </div>
 
-          {filteredBooks.length === 0 ? (
-            <div className="text-center py-16 md:py-24 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-              <div className="w-16 h-16 mx-auto mb-6 border border-[var(--border-primary)] flex items-center justify-center">
-                <PixelIcon name="search" size={32} className="text-[var(--text-tertiary)]" />
-              </div>
-              <h2 className="font-display fs-h-sm uppercase mb-3">No Results</h2>
-              <p className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-                No books match your search
-              </p>
+          <BookRow
+            title="Popular Classics"
+            subtitle="Free public domain books"
+            classicBooks={classicBooks}
+          />
+        </div>
+      ) : (
+        // All books view - Grid with selection
+        <>
+          {/* Toolbar for All view */}
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <PixelIcon name="chevron-left" size={14} />
+              <span className="font-ui fs-p-sm">Back</span>
+            </button>
+
+            <div className="flex-1 max-w-md relative">
+              <PixelIcon
+                name="search"
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]"
+              />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 font-ui fs-p-sm bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none border border-[var(--border-primary)]"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isSelectionMode ? (
+                <>
+                  <button
+                    onClick={handleSelectAll}
+                    className="font-ui fs-p-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  >
+                    {selectedBooks.size === filteredBooks.length ? 'None' : 'All'}
+                  </button>
+                  <span className="font-mono fs-p-sm text-[var(--text-tertiary)]">
+                    {selectedBooks.size}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowShareModal(true)}
+                    disabled={selectedBooks.size === 0}
+                  >
+                    Share
+                  </Button>
+                  <button
+                    onClick={handleExitSelection}
+                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  >
+                    <PixelIcon name="close" size={14} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsSelectionMode(true)}
+                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    aria-label="Select books"
+                  >
+                    <PixelIcon name="check" size={14} />
+                  </button>
+                  <button
+                    onClick={() => setIsUploadOpen(true)}
+                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    aria-label="Upload book"
+                  >
+                    <PixelIcon name="upload" size={14} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Search results message */}
+          {searchQuery && (
+            <p className="font-ui fs-p-sm text-[var(--text-tertiary)] mb-4">
+              {filteredBooks.length} {filteredBooks.length === 1 ? 'result' : 'results'}
+            </p>
+          )}
+
+          {/* Grid */}
+          {filteredBooks.length === 0 && searchQuery ? (
+            <div className="text-center py-16 border border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+              <p className="font-ui fs-p-sm text-[var(--text-secondary)]">No results</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-children">
-              {filteredBooks.map((book) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {sortedBooks.map((book) => (
                 <BookCard
                   key={book.id}
                   book={book}
@@ -348,59 +367,22 @@ export function LibraryGrid() {
             </div>
           )}
         </>
-      ) : viewMode === 'netflix' ? (
-        // Netflix-style row view
-        <div className="space-y-10">
-          {/* Your Books - show first */}
-          <BookRow
-            title="Your Library"
-            subtitle={`${books.length} ${books.length === 1 ? 'book' : 'books'}`}
-            books={filteredBooks}
-            onViewAll={() => setViewMode('grid')}
-          />
-
-          {/* Popular Classics */}
-          <BookRow
-            title="Popular Classics"
-            subtitle="Free public domain books"
-            classicBooks={classicBooks}
-          />
-        </div>
-      ) : (
-        // Grid view
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-ui fs-p-sm uppercase tracking-[0.05em] text-[var(--text-secondary)]">
-              All Books ({books.length})
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 stagger-children">
-            {filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isSelectionMode={isSelectionMode}
-                isSelected={selectedBooks.has(book.id)}
-                onSelect={handleToggleSelect}
-              />
-            ))}
-          </div>
-        </>
       )}
 
-      {/* Upload Modal */}
       <BookUpload isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
 
-      {/* Share Collection Modal */}
       <ShareCollectionModal
         books={getSelectedBooksData()}
-        isOpen={showShareCollectionModal}
+        isOpen={showShareModal}
         onClose={() => {
-          setShowShareCollectionModal(false);
-          handleExitSelectionMode();
+          setShowShareModal(false);
+          handleExitSelection();
         }}
       />
+
+      {/* Streak Modals */}
+      <StreakModal />
+      <StreakGoalModal />
     </div>
   );
 }
