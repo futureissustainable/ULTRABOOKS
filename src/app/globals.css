@@ -2559,13 +2559,14 @@ select {
 }
 
 .reveal {
+  opacity: 0;
   animation: content-reveal 0.5s var(--ease-sharp) forwards;
 }
 
-.reveal-delay-1 { animation-delay: 0.05s; opacity: 0; }
-.reveal-delay-2 { animation-delay: 0.1s; opacity: 0; }
-.reveal-delay-3 { animation-delay: 0.15s; opacity: 0; }
-.reveal-delay-4 { animation-delay: 0.2s; opacity: 0; }
+.reveal-delay-1 { animation-delay: 0.05s; }
+.reveal-delay-2 { animation-delay: 0.1s; }
+.reveal-delay-3 { animation-delay: 0.15s; }
+.reveal-delay-4 { animation-delay: 0.2s; }
 
 /* Premium Input Focus */
 .input-focus {
@@ -2580,9 +2581,9 @@ select {
   outline: none;
 }
 
-/* Gradient Text */
+/* Gradient Text - theme aware */
 .gradient-text {
-  background: linear-gradient(135deg, var(--white) 0%, var(--gray-400) 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
