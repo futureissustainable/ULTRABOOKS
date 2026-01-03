@@ -757,6 +757,655 @@ const loadData = async () => {
 
 ---
 
-That's the complete overview! Start by reading the files in `/src/app/` to see how pages work, then look at `/src/components/` to see the building blocks, and finally `/src/lib/stores/` to understand how data flows.
+---
 
-Happy learning! 🎉
+## Part 11: How The Code Actually Works (Line by Line)
+
+Now let's look at REAL code from this app and understand every line.
+
+---
+
+### 11.1 The Library Page (`src/app/(main)/library/page.tsx`)
+
+This is the simplest file - the page that shows your book library:
+
+```tsx
+'use client';
+```
+**Line 1:** This tells Next.js "this code runs in the browser, not on the server". You need this when using React features like `useState` or `useEffect`.
+
+```tsx
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { LibraryGrid } from '@/components/library/LibraryGrid';
+```
+**Lines 3-5:** Import components we'll use. The `@/` is a shortcut for `src/` folder.
+
+```tsx
+export default function LibraryPage() {
+```
+**Line 7:** Create the page component. `export default` means "this is the main thing this file provides".
+
+```tsx
+  return (
+    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
+      <Header />
+      <main className="flex-1">
+        <div className="container-page pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32">
+          <LibraryGrid />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+```
+**Lines 8-21:** Return the HTML structure:
+- `min-h-screen` = minimum height is full screen
+- `flex flex-col` = stack children vertically
+- `bg-[var(--bg-primary)]` = use a CSS variable for background color
+- `pt-16 sm:pt-24` = padding-top 16 on mobile, 24 on small screens (responsive)
+- `<LibraryGrid />` = the component that shows all your books
+
+**Key insight:** This page is just a layout wrapper. The real work happens in `LibraryGrid`.
+
+---
+
+### 11.2 The LibraryGrid Component (Where Books Are Displayed)
+
+Let's break down `src/components/library/LibraryGrid.tsx`:
+
+```tsx
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+```
+**Lines 1-3:** Import React hooks we'll use:
+- `useEffect` = run code when component loads or when data changes
+- `useState` = store data that can change (like search query)
+- `useCallback` = optimize functions so they don't recreate unnecessarily
+
+```tsx
+import { useBookStore } from '@/lib/stores/book-store';
+```
+**Line 5:** Import the Zustand store that holds all book data.
+
+```tsx
+export function LibraryGrid() {
+  const {
+    books,           // Array of all user's books
+    fetchBooks,      // Function to load books from database
+    isLoading,       // true while loading
+    hasFetched,      // true after first load attempt
+    error,           // Error message if something failed
+    uploadBook,      // Function to upload a single book
+  } = useBookStore();
+```
+**Lines 19-27:** Get data and functions from the store. This is like "connecting" to the central data source.
+
+```tsx
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+```
+**Lines 24-25:** Create local state:
+- `searchQuery` starts as empty string `''`
+- `setSearchQuery` is the function to change it
+- `isDragging` tracks if user is dragging a file over the page
+
+```tsx
+  useEffect(() => {
+    if (!hasFetched) {
+      fetchBooks();
+      fetchQuota();
+    }
+    checkAndUpdateStreak();
+  }, [fetchBooks, fetchQuota, hasFetched, checkAndUpdateStreak]);
+```
+**Lines 35-41:** This runs when the component first appears:
+- `if (!hasFetched)` = only fetch if we haven't already
+- `fetchBooks()` = load books from database
+- The `[...]` at the end lists "dependencies" - the effect re-runs if these change
+
+```tsx
+  const filteredBooks = books.filter(
+    (book) =>
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+```
+**Lines 43-47:** Filter books based on search:
+- `.filter()` creates a new array with only matching items
+- `.toLowerCase()` makes search case-insensitive
+- `.includes()` checks if the search text appears anywhere in title/author
+- `book.author?.` = the `?` handles cases where author might be `null`
+
+```tsx
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();        // Stop browser from opening the file
+    e.stopPropagation();       // Stop event from bubbling up
+    setIsDragging(false);      // Hide the drag overlay
+
+    const files = Array.from(e.dataTransfer.files);  // Get dropped files
+    const validFiles = files.filter(file => validateFile(file));
+
+    if (validFiles.length === 1) {
+      await uploadBook(validFiles[0]);   // Upload single file
+    } else {
+      await uploadBooks(validFiles);     // Upload multiple files
+    }
+  }, [uploadBook, uploadBooks]);
+```
+**Lines 115-139:** Handle file drop:
+- `async` = this function uses `await` for async operations
+- `e.dataTransfer.files` = the files the user dropped
+- `Array.from()` = convert the file list to a regular array
+- `await uploadBook()` = wait for upload to complete before continuing
+
+```tsx
+  if (isLoading && !hasFetched) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+```
+**Lines 159-165:** Show a loading spinner while books are loading. This is called "conditional rendering" - we show different things based on state.
+
+```tsx
+  {sortedBooks.map((book) => (
+    <BookCard
+      key={book.id}
+      book={book}
+      isSelectionMode={isSelectionMode}
+      isSelected={selectedBooks.has(book.id)}
+      onSelect={handleToggleSelect}
+    />
+  ))}
+```
+**Lines 380-388:** Render each book as a card:
+- `.map()` = loop through array and create something for each item
+- `key={book.id}` = React needs unique keys to track items efficiently
+- We pass the book data and callbacks as props
+
+---
+
+### 11.3 The BookCard Component (Single Book Display)
+
+From `src/components/library/BookCard.tsx`:
+
+```tsx
+interface BookCardProps {
+  book: Book;                        // The book object
+  isSelectionMode?: boolean;         // Are we selecting books?
+  isSelected?: boolean;              // Is THIS book selected?
+  onSelect?: (book: Book) => void;   // Function to call when selected
+}
+```
+**Lines 14-19:** TypeScript interface defining what props this component accepts:
+- `book: Book` = required, must be a Book object
+- `isSelectionMode?: boolean` = optional (`?`), defaults to undefined
+
+```tsx
+export function BookCard({ book, isSelectionMode, isSelected, onSelect }: BookCardProps) {
+  const { deleteBook, isLoading } = useBookStore();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+```
+**Lines 21-24:** Component setup:
+- Destructure props: `{ book, ... }` pulls values out of the props object
+- Get `deleteBook` function from the store
+- Create local state for modal visibility
+
+```tsx
+  const coverUrl = getCoverUrl(book.cover_url);
+```
+**Line 26:** Convert the stored path to a full URL. The function handles edge cases like missing covers.
+
+```tsx
+  const handleDelete = async () => {
+    await deleteBook(book.id);    // Delete from database
+    setShowDeleteConfirm(false);  // Close the modal
+  };
+```
+**Lines 35-38:** Delete handler:
+- `async/await` = wait for delete to complete
+- Then close the confirmation modal
+
+```tsx
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+```
+**Lines 40-44:** Helper function to show file sizes nicely:
+- Template literals: `` `${variable} text` `` inserts variables into strings
+- `.toFixed(1)` = show 1 decimal place
+
+```tsx
+  {coverUrl ? (
+    <Image
+      src={coverUrl}
+      alt={book.title}
+      fill
+      className="object-cover"
+    />
+  ) : (
+    <div className="flex flex-col items-center gap-3 p-6">
+      <PixelIcon name="book" size={24} />
+    </div>
+  )}
+```
+**Lines 48-64:** Conditional rendering:
+- `condition ? ifTrue : ifFalse` = ternary operator
+- If `coverUrl` exists, show the image
+- Otherwise, show a placeholder icon
+
+```tsx
+  <Link href={`/reader/${book.id}`}>
+    {coverContent}
+  </Link>
+```
+**Lines 98-100:** Clicking the card goes to the reader page:
+- `Link` is Next.js's navigation component (like `<a>` but faster)
+- `` `/reader/${book.id}` `` = dynamic URL with the book's ID
+
+---
+
+### 11.4 The BookReader Component (Choosing the Right Reader)
+
+From `src/components/reader/BookReader.tsx`:
+
+```tsx
+export function BookReader({ book }: BookReaderProps) {
+  switch (book.file_type) {
+    case 'epub':
+    case 'mobi':
+      return <EpubReader book={book} />;
+    case 'pdf':
+      return <PdfReader book={book} />;
+    default:
+      return (
+        <div>Unsupported Format</div>
+      );
+  }
+}
+```
+**Lines 12-37:** This is a "router" component:
+- `switch` checks the file type
+- EPUB and MOBI both use `EpubReader` (same library handles both)
+- PDF uses `PdfReader`
+- Unknown types show an error message
+
+---
+
+### 11.5 The Book Store (Data Management)
+
+From `src/lib/stores/book-store.ts` - this is the heart of the app:
+
+```tsx
+import { create } from 'zustand';
+```
+**Line 1:** Import Zustand's `create` function to make a store.
+
+```tsx
+interface BookState {
+  books: Book[];              // Array of books
+  currentBook: Book | null;   // Currently viewing book (or null)
+  isLoading: boolean;         // Loading state
+  error: string | null;       // Error message (or null)
+
+  fetchBooks: () => Promise<void>;   // Function type that returns a Promise
+  uploadBook: (file: File) => Promise<{ book: Book | null; error: string | null }>;
+}
+```
+**Lines 40-62:** TypeScript interface defining the store's shape:
+- State values: `books`, `currentBook`, `isLoading`, etc.
+- Functions: `fetchBooks`, `uploadBook`, etc.
+- `Promise<void>` = async function that doesn't return anything
+- `Promise<{ book: Book | null; error: string | null }>` = returns an object
+
+```tsx
+export const useBookStore = create<BookState>((set, get) => ({
+  books: [],
+  currentBook: null,
+  isLoading: false,
+  error: null,
+```
+**Lines 64-68:** Create the store with initial values:
+- `create<BookState>` = create a store matching our interface
+- `set` = function to update state
+- `get` = function to read current state
+- Initial values: empty array, null, false, etc.
+
+```tsx
+  fetchBooks: async () => {
+    set({ isLoading: true, error: null });
+```
+**Lines 77-84:** Start of `fetchBooks`:
+- `async () => {}` = async arrow function
+- `set({ isLoading: true })` = update state to show we're loading
+
+```tsx
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        set({ isLoading: false, books: [] });
+        return;
+      }
+```
+**Lines 86-93:** Get current user:
+- `try { }` = error handling block
+- `createClient()` = get Supabase connection
+- `const { data: { user } }` = destructure nested object
+- If no user, stop loading and return empty
+
+```tsx
+      const { data, error } = await supabase
+        .from('books')           // Which table
+        .select('*')             // Get all columns
+        .eq('user_id', user.id)  // Filter by user
+        .order('updated_at', { ascending: false });  // Sort newest first
+```
+**Lines 95-99:** Database query:
+- This is like SQL: `SELECT * FROM books WHERE user_id = ? ORDER BY updated_at DESC`
+- Supabase uses a chainable API (each method returns an object with more methods)
+
+```tsx
+      if (error) {
+        set({ isLoading: false, error: error.message });
+        return;
+      }
+
+      set({ books: data || [], isLoading: false });
+```
+**Lines 101-106:** Handle response:
+- If error, save the error message
+- Otherwise, save the books (`data || []` means "use data, or empty array if null")
+
+```tsx
+    } catch (err) {
+      console.error('fetchBooks error:', err);
+      set({ isLoading: false, error: 'Failed to fetch books' });
+    }
+  },
+```
+**Lines 107-110:** Catch any unexpected errors.
+
+---
+
+### 11.6 Uploading a Book (Complex Flow)
+
+```tsx
+  uploadBook: async (file: File) => {
+    const supabase = createClient();
+    set({ isUploading: true, error: null });
+```
+**Lines 181-183:** Start upload process.
+
+```tsx
+    // Determine file type
+    const fileName = file.name.toLowerCase();
+    let fileType: 'epub' | 'pdf' | 'mobi';
+    if (fileName.endsWith('.epub')) {
+      fileType = 'epub';
+    } else if (fileName.endsWith('.pdf')) {
+      fileType = 'pdf';
+    } else if (fileName.endsWith('.mobi')) {
+      fileType = 'mobi';
+    } else {
+      set({ isUploading: false, error: 'Unsupported file type' });
+      return { book: null, error: 'Unsupported file type' };
+    }
+```
+**Lines 199-211:** Validate file type:
+- Check the file extension
+- Reject if not epub/pdf/mobi
+
+```tsx
+    // For EPUBs, try to extract metadata
+    if (fileType === 'epub') {
+      try {
+        const metadata = await extractEpubMetadata(file);
+        if (metadata.title) {
+          title = metadata.title;
+        }
+        if (metadata.author) {
+          author = metadata.author;
+        }
+      } catch (epubError) {
+        console.error('Error extracting EPUB metadata:', epubError);
+      }
+    }
+```
+**Lines 219-231:** Extract book info from EPUB:
+- EPUBs contain metadata (title, author)
+- We try to extract it, but continue even if it fails
+
+```tsx
+    // Upload file to storage
+    const fileId = generateFileId();    // Create unique ID
+    const filePath = `${user.id}/${fileId}.${fileType}`;
+    const { error: uploadError } = await supabase.storage
+      .from('books')
+      .upload(filePath, file);
+```
+**Lines 299-304:** Upload the actual file:
+- Generate a unique ID (UUID)
+- Create path: `userId/uniqueId.epub`
+- Upload to Supabase storage
+
+```tsx
+    // Create book record in database
+    const { data: book, error: insertError } = await supabase
+      .from('books')
+      .insert({
+        user_id: user.id,
+        title,
+        author,
+        cover_url: coverUrl,
+        file_url: filePath,
+        file_type: fileType,
+        file_size: file.size,
+      })
+      .select()
+      .single();
+```
+**Lines 336-348:** Save book info to database:
+- `.insert({...})` = add new row
+- `.select()` = return the created row
+- `.single()` = expect exactly one result
+
+```tsx
+    set((state) => ({
+      books: [book, ...state.books],   // Add new book to START of array
+      isUploading: false,
+    }));
+
+    return { book, error: null };
+```
+**Lines 364-369:** Update state:
+- `set((state) => ({...}))` = update based on current state
+- `[book, ...state.books]` = spread operator, puts new book first
+- Return success
+
+---
+
+### 11.7 The Reader Store (Settings & Progress)
+
+From `src/lib/stores/reader-store.ts`:
+
+```tsx
+export const useReaderStore = create<ReaderState>()(
+  persist(
+    (set, get) => ({
+      settings: defaultSettings,
+      // ...
+    }),
+    {
+      name: 'memoros-reader-settings',   // localStorage key
+      partialize: (state) => ({          // What to save
+        settings: state.settings,
+        localProgress: state.localProgress,
+      }),
+    }
+  )
+);
+```
+**Lines 91-455:** This store uses `persist` middleware:
+- `persist(...)` wraps the store to auto-save to localStorage
+- `name` = the key in localStorage
+- `partialize` = only save certain parts (not everything)
+
+```tsx
+  updateProgress: async (bookId, location, page, percentage) => {
+    const now = new Date().toISOString();
+
+    // Always save locally first (works offline)
+    set((state) => ({
+      currentLocation: location,
+      currentPage: page || null,
+      progressPercentage: percentage || 0,
+      localProgress: {
+        ...state.localProgress,
+        [bookId]: {
+          currentLocation: location,
+          currentPage: page || null,
+          progressPercentage: percentage || 0,
+          lastReadAt: now,
+        },
+      },
+    }));
+
+    // Then try to sync to database
+    try {
+      const supabase = createClient();
+      await supabase
+        .from('reading_progress')
+        .upsert({...});
+    } catch (error) {
+      // Silently fail - local progress is saved
+    }
+  },
+```
+**Lines 182-222:** Progress saving strategy:
+1. Save to localStorage immediately (instant, works offline)
+2. Try to sync to database (for cross-device sync)
+3. If database fails, that's okay - local is saved
+
+```tsx
+  loadProgress: async (bookId) => {
+    // First check local
+    const localData = get().localProgress[bookId];
+
+    // Then try database
+    const { data } = await supabase
+      .from('reading_progress')
+      .select('*')
+      .eq('book_id', bookId)
+      .single();
+
+    // Compare timestamps - use newer one
+    const serverTime = new Date(data.last_read_at).getTime();
+    const localTime = new Date(localData.lastReadAt).getTime();
+
+    if (serverTime >= localTime) {
+      // Server is newer - use it
+      set({ currentLocation: data.current_location });
+    }
+  },
+```
+**Lines 224-286:** Progress loading - picks the newest:
+- Check local storage first
+- Then check database
+- Compare timestamps
+- Use whichever is more recent
+
+---
+
+### 11.8 Supabase Client (Database Connection)
+
+From `src/lib/supabase/client.ts`:
+
+```tsx
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+```
+**Lines 4-5:** Read environment variables:
+- `process.env` = Node.js environment variables
+- `NEXT_PUBLIC_` prefix = available in browser (not secret)
+
+```tsx
+export function createClient() {
+  if (!isSupabaseConfigured()) {
+    throw new Error('Supabase is not configured...');
+  }
+
+  return createBrowserClient<Database>(
+    supabaseUrl!,
+    supabaseAnonKey!
+  );
+}
+```
+**Lines 11-20:** Create database client:
+- Check if configured
+- `<Database>` = TypeScript type for type-safe queries
+- `!` = "trust me, this value exists" (we checked above)
+
+---
+
+## Part 12: Key Patterns to Recognize
+
+### Pattern 1: The Loading Pattern
+```tsx
+if (isLoading) return <Spinner />;
+return <ActualContent />;
+```
+
+### Pattern 2: The Try-Catch Pattern
+```tsx
+try {
+  const result = await riskyOperation();
+  handleSuccess(result);
+} catch (error) {
+  handleError(error);
+}
+```
+
+### Pattern 3: The Conditional Render Pattern
+```tsx
+{condition && <ComponentToShow />}        // Show if true
+{condition ? <IfTrue /> : <IfFalse />}   // Show one or the other
+```
+
+### Pattern 4: The Map Pattern
+```tsx
+{items.map(item => (
+  <Component key={item.id} data={item} />
+))}
+```
+
+### Pattern 5: The Store Pattern
+```tsx
+// In store: define state and functions
+const useStore = create((set) => ({
+  data: [],
+  setData: (newData) => set({ data: newData }),
+}));
+
+// In component: use the store
+const { data, setData } = useStore();
+```
+
+---
+
+That's the complete code walkthrough! The best way to learn is to:
+1. Find a small feature you want to understand
+2. Start at the page component
+3. Follow the imports down to see what each piece does
+4. Read the store to understand data flow
+
+Happy learning!
