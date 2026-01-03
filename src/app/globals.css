@@ -112,6 +112,8 @@
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-sharp: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-reveal: cubic-bezier(0.33, 0, 0.2, 1);
   --duration-instant: 100ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
@@ -562,19 +564,19 @@
 }
 
 /* Hero overlay - strong fade on left for text readability, books visible on right */
+/* Uses theme-aware colors via color-mix for proper light/dark mode support */
 .hero-gradient-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  /* Mobile: very dark overlay - books are subtle texture only */
+  /* Mobile: strong overlay - books are subtle texture only */
   background:
-    /* Almost solid dark overlay for mobile readability */
     linear-gradient(to bottom,
       var(--bg-primary) 0%,
-      rgba(10, 10, 10, 0.92) 10%,
-      rgba(10, 10, 10, 0.88) 50%,
-      rgba(10, 10, 10, 0.92) 90%,
+      color-mix(in srgb, var(--bg-primary) 92%, transparent) 10%,
+      color-mix(in srgb, var(--bg-primary) 88%, transparent) 50%,
+      color-mix(in srgb, var(--bg-primary) 92%, transparent) 90%,
       var(--bg-primary) 100%
     );
 }
@@ -583,13 +585,13 @@
 @media (min-width: 768px) {
   .hero-gradient-overlay {
     background:
-      /* Left side solid to semi-transparent - 1.5x coverage */
+      /* Left side solid to semi-transparent */
       linear-gradient(to right,
         var(--bg-primary) 0%,
-        rgba(10, 10, 10, 0.95) 30%,
-        rgba(10, 10, 10, 0.85) 50%,
-        rgba(10, 10, 10, 0.6) 70%,
-        rgba(10, 10, 10, 0.3) 85%,
+        color-mix(in srgb, var(--bg-primary) 95%, transparent) 30%,
+        color-mix(in srgb, var(--bg-primary) 85%, transparent) 50%,
+        color-mix(in srgb, var(--bg-primary) 60%, transparent) 70%,
+        color-mix(in srgb, var(--bg-primary) 30%, transparent) 85%,
         transparent 100%
       ),
       /* Top edge fade */
@@ -609,13 +611,13 @@
 @media (min-width: 1280px) {
   .hero-gradient-overlay {
     background:
-      /* Left side strong, fades to show books on right - 1.5x coverage */
+      /* Left side strong, fades to show books on right */
       linear-gradient(to right,
         var(--bg-primary) 0%,
-        rgba(10, 10, 10, 0.95) 22%,
-        rgba(10, 10, 10, 0.8) 45%,
-        rgba(10, 10, 10, 0.5) 65%,
-        rgba(10, 10, 10, 0.25) 82%,
+        color-mix(in srgb, var(--bg-primary) 95%, transparent) 22%,
+        color-mix(in srgb, var(--bg-primary) 80%, transparent) 45%,
+        color-mix(in srgb, var(--bg-primary) 50%, transparent) 65%,
+        color-mix(in srgb, var(--bg-primary) 25%, transparent) 82%,
         transparent 100%
       ),
       /* Top edge */
@@ -2546,11 +2548,17 @@ select {
   width: 100%;
 }
 
-/* Smooth Content Reveal */
+/* ============================================
+   CONTENT REVEAL ANIMATIONS
+   Hero: Immediate animation on page load
+   Scroll: Triggered by Intersection Observer
+   ============================================ */
+
+/* Hero Reveal - Immediate on page load */
 @keyframes content-reveal {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -2560,13 +2568,35 @@ select {
 
 .reveal {
   opacity: 0;
-  animation: content-reveal 0.5s var(--ease-sharp) forwards;
+  animation: content-reveal 350ms cubic-bezier(0.33, 0, 0.2, 1) forwards;
 }
 
-.reveal-delay-1 { animation-delay: 0.05s; }
-.reveal-delay-2 { animation-delay: 0.1s; }
-.reveal-delay-3 { animation-delay: 0.15s; }
-.reveal-delay-4 { animation-delay: 0.2s; }
+/* Staggered delays for hero elements (40ms apart) */
+.reveal-delay-1 { animation-delay: 40ms; }
+.reveal-delay-2 { animation-delay: 80ms; }
+.reveal-delay-3 { animation-delay: 120ms; }
+.reveal-delay-4 { animation-delay: 160ms; }
+.reveal-delay-5 { animation-delay: 200ms; }
+.reveal-delay-6 { animation-delay: 240ms; }
+
+/* Mobile: Snappier animations */
+@media (max-width: 767px) {
+  .reveal {
+    animation-duration: 300ms;
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .scroll-reveal,
+  [data-scroll-reveal] {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
 
 /* Premium Input Focus */
 .input-focus {
