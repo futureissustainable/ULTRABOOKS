@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Suspense } from 'react';
 import localFont from 'next/font/local';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistration';
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator';
 import { DEFAULT_METADATA, SITE_URL, getOrganizationSchema, getWebsiteSchema, getSoftwareApplicationSchema, getFAQSchema } from '@/lib/seo';
@@ -117,7 +119,11 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <Suspense fallback={null}>
+              <PostHogProvider>
+                {children}
+              </PostHogProvider>
+            </Suspense>
             <ServiceWorkerRegistration />
             <OfflineIndicator />
           </AuthProvider>

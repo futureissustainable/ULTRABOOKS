@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Book } from '@/lib/supabase/types';
 import { extractEpubCover, extractEpubMetadata } from '@/lib/epub-utils';
 import { generateFileId, extractPathFromLegacyUrl, isLegacyUrl } from '@/lib/supabase/storage';
+import { funnels, track } from '@/lib/analytics';
 
 interface CopyBookParams {
   shareLinkId: string;
@@ -182,10 +183,16 @@ export const useBookStore = create<BookState>((set, get) => ({
     const supabase = createClient();
     set({ isUploading: true, error: null });
 
+    // Track upload started
+    const fileSizeMb = Math.round(file.size / (1024 * 1024) * 100) / 100;
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'unknown';
+    funnels.activation.uploadStarted(fileExt, fileSizeMb);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         set({ isUploading: false, error: 'Not authenticated' });
+        funnels.activation.uploadFailed(fileExt, 'Not authenticated');
         return { book: null, error: 'Not authenticated' };
       }
 
@@ -193,6 +200,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       const quotaCheck = await get().checkQuota(1);
       if (!quotaCheck.allowed) {
         set({ isUploading: false, error: quotaCheck.error || 'Upload limit reached' });
+        funnels.activation.uploadFailed(fileExt, quotaCheck.error || 'Upload limit reached');
         return { book: null, error: quotaCheck.error || 'Upload limit reached' };
       }
 
@@ -361,6 +369,9 @@ export const useBookStore = create<BookState>((set, get) => ({
       // Refresh quota
       get().fetchQuota();
 
+      // Track successful upload
+      funnels.activation.uploadCompleted(book.id, book.title, fileType, fileSizeMb);
+
       set((state) => ({
         books: [book, ...state.books],
         isUploading: false,
@@ -369,6 +380,7 @@ export const useBookStore = create<BookState>((set, get) => ({
       return { book, error: null };
     } catch (err) {
       set({ isUploading: false, error: 'Upload failed' });
+      funnels.activation.uploadFailed(fileExt, 'Upload failed');
       return { book: null, error: 'Upload failed' };
     }
   },
@@ -670,6 +682,9 @@ export const useBookStore = create<BookState>((set, get) => ({
         return;
       }
 
+      // Track book deletion
+      track({ event: 'book_deleted', properties: { book_id: id } });
+
       set((state) => ({
         books: state.books.filter((b) => b.id !== id),
       }));
@@ -819,6 +834,9 @@ export const useBookStore = create<BookState>((set, get) => ({
           claimed_by_user_id: user.id,
           new_book_id: newBook.id,
         });
+
+      // Track shared book added to library
+      funnels.viral.sharedBookAdded(shareLinkId, newBook.id);
 
       set((state) => ({
         books: [newBook, ...state.books],
